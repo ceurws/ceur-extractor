@@ -1,0 +1,12 @@
+SELECT (STRDT(?acrn, xsd:string) AS ?acrn_str) ?proc ?chair_name {
+    VALUES (?acrn ?proc) {
+        ("BeRSys" <http://ceur-ws.org/Vol-981/>)
+    }
+    ?w a bibo:Workshop ;
+        rdfs:label | bibo:shortTitle ?w_name ;
+        swc:hasRole / swc:heldBy ?chair .
+    ?chair foaf:name ?chair_name .
+    ?proc bibo:presentedAt ?w .
+    FILTER(?w_name = ?acrn)
+}
+LIMIT 10

@@ -1,0 +1,12 @@
+SELECT ?proc ?result {
+ VALUES ?proc {
+   <http://ceur-ws.org/Vol-1085/>
+   <http://ceur-ws.org/Vol-1/>
+ }
+ ?proc bibo:presentedAt ?workshop ;
+       dcterms:issued ?issued .
+ { ?workshop timeline:atDate ?date }
+ UNION
+ { ?workshop timeline:beginsAtDateTime ?date }
+ BIND(bound(?date) && YEAR(?date) >= YEAR(?issued) && (MONTH(?date) = MONTH(?issued) && DAY(?date) >= DAY(?issued) || MONTH(?date) > MONTH(?issued)) AS ?result)
+}

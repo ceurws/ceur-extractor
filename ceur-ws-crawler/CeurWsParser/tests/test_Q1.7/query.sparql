@@ -1,0 +1,25 @@
+SELECT (STRDT(?search, xsd:string) AS ?search_a) ?editor_name WHERE {
+  {
+    SELECT ?search ?workshop ?editor WHERE {
+      VALUES ?search {"Linked Data on the Web" "Semantic Publishing"} .
+      ?workshop a bibo:Workshop;
+                rdfs:label ?label .
+      FILTER(strStarts(?label, ?search)) .
+      [] a swrc:Proceedings;
+                           bibo:presentedAt ?workshop;
+                           swrc:editor ?editor .
+    }
+  }
+  {
+    SELECT ?search (COUNT(?workshop) AS ?count) WHERE {
+      VALUES ?search {"Linked Data on the Web" "Semantic Publishing"} .
+      ?workshop a bibo:Workshop;
+                rdfs:label ?label .
+      FILTER(strStarts(?label, ?search)) .
+    }
+    GROUP BY ?search
+  }
+  ?editor foaf:name ?editor_name .
+}
+GROUP BY ?search ?editor_name
+HAVING (COUNT(?search) = MAX(?count))

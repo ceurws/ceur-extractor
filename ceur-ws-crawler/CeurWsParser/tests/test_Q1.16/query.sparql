@@ -1,0 +1,68 @@
+SELECT (STRDT(?acrn, xsd:string) AS ?acrn_str) (YEAR(?cr_date) AS ?date) ?pr {
+  ?c a swc:OrganizedEvent ;
+        rdfs:label ?c_name ;
+        timeline:atDate ?c_date .
+  ?cr a swc:OrganizedEvent ;
+        rdfs:label ?cr_name ;
+        timeline:atDate ?cr_date .
+  ?w a bibo:Workshop ;
+     swc:isSubEventOf ?c .
+  ?wr skos:related ?w ;
+      swc:isSubEventOf ?cr .
+  ?p a swrc:Proceedings ;
+     bibo:presentedAt ?w .
+  ?pr a swrc:Proceedings ;
+      bibo:presentedAt ?wr .
+  {
+    SELECT ?p (COUNT(?pub) AS ?p_num_pubs) {
+      ?p dcterms:hasPart ?pub .
+      ?pub a swrc:InProceedings .
+    }
+    GROUP BY ?p
+  }
+  {
+    SELECT ?pr (COUNT(?pub) AS ?pr_num_pubs) {
+      ?pr dcterms:hasPart ?pub .
+      ?pub a swrc:InProceedings .
+    }
+    GROUP BY ?pr
+  }
+  {
+    SELECT ?acrn ?year (MAX(?pr_num_pubs-?p_num_pubs) AS ?max_diff) {
+        VALUES (?acrn ?year) {
+        ("WWW" "2012")
+      }
+      ?c a swc:OrganizedEvent ;
+            rdfs:label ?c_name ;
+            timeline:atDate ?c_date .
+      ?cr a swc:OrganizedEvent ;
+            rdfs:label ?cr_name ;
+            timeline:atDate ?cr_date .
+      ?w a bibo:Workshop ;
+         swc:isSubEventOf ?c .
+      ?wr skos:related ?w ;
+          swc:isSubEventOf ?cr .
+      ?p a swrc:Proceedings ;
+         bibo:presentedAt ?w .
+      ?pr a swrc:Proceedings ;
+          bibo:presentedAt ?wr .
+      {
+        SELECT ?p (COUNT(?pub) AS ?p_num_pubs) {
+          ?p dcterms:hasPart ?pub .
+          ?pub a swrc:InProceedings .
+        }
+        GROUP BY ?p
+      }
+      {
+        SELECT ?pr (COUNT(?pub) AS ?pr_num_pubs) {
+          ?pr dcterms:hasPart ?pub .
+          ?pub a swrc:InProceedings .
+        }
+        GROUP BY ?pr
+      }
+      FILTER(?c_name = ?acrn && ?cr_name = ?acrn && STR(YEAR(?c_date)) = ?year && ?c_date < ?cr_date)
+    }
+    GROUP BY ?acrn ?year
+  }
+  FILTER(?c_name = ?acrn && ?cr_name = ?acrn && STR(YEAR(?c_date)) = ?year && ?c_date < ?cr_date && (?pr_num_pubs - ?p_num_pubs) = ?max_diff)
+}

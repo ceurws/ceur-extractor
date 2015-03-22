@@ -1,0 +1,24 @@
+SELECT (STRDT(?prefix, xsd:string) AS ?prefix_str) (YEAR(?prev) AS ?p) (YEAR(?date) AS ?d) {
+  {
+    SELECT ?prefix ?x (MAX(?y_date) as ?prev) {
+      VALUES ?prefix {
+        "Linked Data on the Web"
+        "Workshop on Modular Ontologies"
+      }
+      ?x a bibo:Workshop ;
+         rdfs:label ?x_name ;
+         timeline:atDate|timeline:beginsAtDateTime ?x_date .
+      ?y a bibo:Workshop ;
+         rdfs:label ?y_name ;
+         timeline:atDate|timeline:beginsAtDateTime ?y_date .
+      FILTER(
+        STRSTARTS(?x_name, ?prefix)
+        && STRSTARTS(?y_name, ?prefix)
+        && ?x_date > ?y_date
+      )
+    }
+    GROUP BY ?prefix ?x
+  }
+  ?x timeline:atDate|timeline:beginsAtDateTime ?date .
+  FILTER(ABS(MONTH(?date) - MONTH(?prev))>=2)
+}

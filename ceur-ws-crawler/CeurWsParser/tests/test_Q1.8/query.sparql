@@ -1,0 +1,21 @@
+SELECT ?conf_name (YEAR(?conf_year) AS ?conf_year_int) ?proc WHERE {
+  {
+    ?conf a swc:OrganizedEvent;
+          rdfs:label "LPNMR"^^xsd:string ;
+          rdfs:label ?conf_name ;
+          timeline:atDate "2013"^^xsd:gYear ;
+          timeline:atDate ?conf_year .
+  }
+  UNION
+  {
+    ?conf a swc:OrganizedEvent;
+          rdfs:label "WWW"^^xsd:string ;
+          rdfs:label ?conf_name ;
+          timeline:atDate "2012"^^xsd:gYear ;
+          timeline:atDate ?conf_year .
+  }
+  ?workshop a bibo:Workshop;
+            swc:isSubEventOf ?conf .
+  ?proc a swrc:Proceedings ;
+        bibo:presentedAt ?workshop .
+}

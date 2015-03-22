@@ -1,0 +1,16 @@
+SELECT DISTINCT ?proc ?pub WHERE {
+    VALUES ?proc {
+        <http://ceur-ws.org/Vol-1008/>
+        <http://ceur-ws.org/Vol-721/>
+        <http://ceur-ws.org/Vol-1/>
+    }
+    ?proc swrc:editor ?editor .
+    ?editor a foaf:Agent ;
+            foaf:name ?editor_name .
+    ?pub a foaf:Document ;
+         dcterms:partOf ?proc .
+    ?author a foaf:Agent ;
+            dc:creator ?pub ;
+            foaf:name ?author_name .
+    FILTER(REGEX(?author_name, CONCAT(".*", REPLACE(?editor_name, "[. ']+", ".*"), ".*"), "i")) .
+}

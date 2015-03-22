@@ -1,0 +1,26 @@
+SELECT (STRDT(?acrn, xsd:string) AS ?acrn_str) (YEAR(?c_date) AS ?c_year) ?w_name {
+  VALUES (?acrn ?year) {
+    ("ISWC" "2012")
+  }
+  ?c a swc:OrganizedEvent ;
+     rdfs:label ?c_name ;
+     timeline:atDate ?c_date .
+  ?w a bibo:Workshop ;
+     swc:isSubEventOf ?c ;
+     rdfs:label ?w_name .
+  {
+    SELECT ?w (MAX(?date) AS ?prev_date) {
+      ?wr a bibo:Workshop ;
+          timeline:atDate | timeline:beginsAtDateTime ?date .
+      ?w skos:related ?wr .
+    }
+    GROUP BY ?w
+  }
+  ?w skos:related ?wr .
+  ?wr timeline:atDate | timeline:beginsAtDateTime ?wr_date ;
+      swc:isSubEventOf ?cr .
+  ?cr a swc:OrganizedEvent ;
+      rdfs:label ?cr_name .
+  FILTER(?c_name = ?acrn && STR(YEAR(?c_date)) = ?year && ?cr_name != ?acrn &&
+?wr_date = ?prev_date)
+}

@@ -1,0 +1,9 @@
+SELECT DISTINCT ?proc ?creator_name WHERE {
+    VALUES ?proc {
+        <http://ceur-ws.org/Vol-1085/>
+        <http://ceur-ws.org/Vol-994/>
+    } .
+    ?pub dcterms:partOf ?proc .
+    ?creator dc:creator ?pub ;
+             foaf:name ?creator_name .
+}

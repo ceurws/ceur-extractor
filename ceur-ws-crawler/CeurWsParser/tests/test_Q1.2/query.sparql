@@ -1,0 +1,10 @@
+SELECT ?proc (count(?pub) AS ?paper_count) {
+    VALUES ?proc {
+        <http://ceur-ws.org/Vol-979/>
+        <http://ceur-ws.org/Vol-1008/>
+        <http://ceur-ws.org/Vol-994/>
+        <http://ceur-ws.org/Vol-1/>
+    }
+    ?pub dcterms:partOf ?proc .
+}
+GROUP BY ?proc

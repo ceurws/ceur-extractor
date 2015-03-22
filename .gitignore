@@ -1,0 +1,3 @@
+*.txt
+*.pyc
+ceur-ws-crawler/CeurWsParser/config.py

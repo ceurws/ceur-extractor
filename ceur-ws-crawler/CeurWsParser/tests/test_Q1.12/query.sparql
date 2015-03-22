@@ -1,0 +1,21 @@
+SELECT ?proc ?prefix {
+  {
+    SELECT ?proc (MIN(?date) AS ?min_date) {
+      VALUES ?proc {
+        <http://ceur-ws.org/Vol-1049/>
+      }
+      ?proc bibo:presentedAt|bibo:presentedAt/skos:related ?workshop .
+      { ?workshop timeline:atDate ?date . }
+      UNION
+      { ?workshop timeline:beginsAtDateTime ?date . }
+    }
+    GROUP BY ?proc
+  }
+  ?proc bibo:presentedAt|bibo:presentedAt/skos:related ?workshop .
+  ?workshop rdfs:label ?name .
+  { ?workshop timeline:atDate ?date . }
+  UNION
+  { ?workshop timeline:beginsAtDateTime ?date . }
+  FILTER(?date = ?min_date)
+  BIND(REPLACE(?name, "\\s+(20|19)\\d{2}.*$","") AS ?prefix)
+}

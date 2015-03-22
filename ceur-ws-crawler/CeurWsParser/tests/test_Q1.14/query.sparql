@@ -1,0 +1,9 @@
+SELECT (STRDT(?acrn, xsd:string) AS ?acrn_str) ?proc ?publication {
+  VALUES (?acrn ?proc) {
+    ("BeRSys" <http://ceur-ws.org/Vol-981/>)
+  }
+  ?workshop bibo:shortTitle ?w_title .
+  ?publication a swrc:InProceedings ;
+               bibo:presentedAt ?workshop .
+  FILTER(?w_title = ?acrn)
+}
