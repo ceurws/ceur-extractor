@@ -64,7 +64,7 @@ def main(test):
     number_of_failed_with_exception = 0
 
     graph = Graph(
-        sparqlstore.SPARQLStore(config.sparqlstore['sesame_url'],
+        sparqlstore.SPARQLStore(config.sparqlstore['test_url'],
                                 context_aware=False))
     graph.bind('foaf', FOAF)
     graph.bind('xsd', XSD)
@@ -125,7 +125,7 @@ def main(test):
 
 
 if __name__ == '__main__':
-    parser = argparse.ArgumentParser(description='Run the test SPARQL queries for Task 1')
+    parser = argparse.ArgumentParser(description = 'Run the test SPARQL queries for Task 1')
     parser.add_argument('--test', required=False)
     args = parser.parse_args()
     main(args.test)

@@ -2,6 +2,7 @@ SELECT ?proc ?prefix {
   {
     SELECT ?proc (MIN(?date) AS ?min_date) {
       VALUES ?proc {
+        <http://ceur-ws.org/Vol-1074/>
         <http://ceur-ws.org/Vol-1049/>
       }
       ?proc bibo:presentedAt|bibo:presentedAt/skos:related ?workshop .

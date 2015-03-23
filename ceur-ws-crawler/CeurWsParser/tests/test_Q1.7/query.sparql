@@ -1,7 +1,7 @@
 SELECT (STRDT(?search, xsd:string) AS ?search_a) ?editor_name WHERE {
   {
     SELECT ?search ?workshop ?editor WHERE {
-      VALUES ?search {"Linked Data on the Web" "Semantic Publishing"} .
+      VALUES ?search {"Linked Data on the Web" "Semantic Publishing" "Uncertainty Reasoning for the Semantic Web"} .
       ?workshop a bibo:Workshop;
                 rdfs:label ?label .
       FILTER(strStarts(?label, ?search)) .
@@ -12,7 +12,7 @@ SELECT (STRDT(?search, xsd:string) AS ?search_a) ?editor_name WHERE {
   }
   {
     SELECT ?search (COUNT(?workshop) AS ?count) WHERE {
-      VALUES ?search {"Linked Data on the Web" "Semantic Publishing"} .
+      VALUES ?search {"Linked Data on the Web" "Semantic Publishing" "Uncertainty Reasoning for the Semantic Web"} .
       ?workshop a bibo:Workshop;
                 rdfs:label ?label .
       FILTER(strStarts(?label, ?search)) .

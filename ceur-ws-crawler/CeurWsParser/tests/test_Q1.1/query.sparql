@@ -2,6 +2,7 @@ SELECT ?proc ?editor_name WHERE {
     VALUES ?proc {
         <http://ceur-ws.org/Vol-1085/>
         <http://ceur-ws.org/Vol-1008/>
+        <http://ceur-ws.org/Vol-540/>
         <http://ceur-ws.org/Vol-1/>
     }
     ?proc   swrc:editor ?editor .

@@ -4,6 +4,7 @@ SELECT (STRDT(?prefix, xsd:string) AS ?prefix_str) (YEAR(?prev) AS ?p) (YEAR(?da
       VALUES ?prefix {
         "Linked Data on the Web"
         "Workshop on Modular Ontologies"
+        "Scalable and High-Performance Semantic Web"
       }
       ?x a bibo:Workshop ;
          rdfs:label ?x_name ;

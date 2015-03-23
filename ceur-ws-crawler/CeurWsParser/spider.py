@@ -36,8 +36,8 @@ mappings = dict(
             PublicationParser
         ],
         'publication': [
-            PublicationNumOfPagesParser,
-            PDFParser
+            #PublicationNumOfPagesParser,
+            #PDFParser
         ]
     }
 )
@@ -45,11 +45,9 @@ mappings = dict(
 
 class CEURSpider(Spider):
     def __init__(self):
-        Spider.__init__(self, thread_number=1)
-        self.setup_grab(timeout=240)
-        self.publication_results_done = 0
-        self.publication_results_failed = 0
-        self.repo = rdflib.Graph(store='default')
+        Spider.__init__(self, thread_number = 1)
+        self.setup_grab(timeout = 120)
+        self.repo = rdflib.Graph(store = 'default')
         self.repo.bind('foaf', FOAF)
         self.repo.bind('swc', SWC)
         self.repo.bind('skos', SKOS)
@@ -89,32 +87,18 @@ class CEURSpider(Spider):
     def shutdown(self):
         Spider.shutdown(self)
         f = open('rdfdb.ttl', 'w')
-        self.repo.serialize(f, format='turtle')
+        self.repo.serialize(f, format = 'turtle')
         self.repo.close()
 
-    def print_stats(self):
-        print "Publications done:", self.publication_results_done
-        print "Publications failed:", self.publication_results_failed
-
-
 def main():
-    default_logging(grab_log="log.txt")
-
-    fl = open("out.txt", "w")
-    flval = open("outval.txt", "w")
-
+    default_logging()
     bot = CEURSpider()
     bot.initial_urls = config.input_urls
-    bot.out = fl
-    bot.validate = flval
     try:
         bot.run()
     except KeyboardInterrupt:
         pass
-    fl.close()
-    flval.close()
 
-    bot.print_stats()
     print(bot.render_stats())
 
 

@@ -1,6 +1,8 @@
 SELECT (STRDT(?acrn, xsd:string) AS ?acrn_str) (YEAR(?c_date) AS ?c_year) ?w_name {
   VALUES (?acrn ?year) {
     ("ISWC" "2012")
+    ("FOIS" "2012")
+    ("ESWC" "2012")
   }
   ?c a swc:OrganizedEvent ;
      rdfs:label ?c_name ;
