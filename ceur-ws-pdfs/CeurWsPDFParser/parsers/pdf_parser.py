@@ -5,77 +5,18 @@ import os
 import tempfile
 import re
 from cStringIO import StringIO
+import urllib
 from urllib2 import HTTPError
 
-from pdfminer.pdfinterp import PDFResourceManager, PDFPageInterpreter
-from pdfminer.converter import TextConverter
-from pdfminer.layout import LAParams
-from pdfminer.pdfpage import PDFPage
-from rdflib import URIRef, Graph
+import rdflib
+from rdflib import URIRef, Graph, Literal
 from rdflib.plugins.stores.sparqlstore import SPARQLStore
 
 import config
-from base import Parser, find_university_in_dbpedia
-from namespaces import SWRC, DBPEDIAOWL
-
-
-def find_country_in_dbpedia(graph, tokens):
-    if len(tokens) == 0:
-        return []
-    values = ' '.join(['"' + token.strip() + '"' for token in tokens])
-    try:
-        results = graph.query("""SELECT DISTINCT ?country {
-            VALUES ?search {
-                """ + values + """
-            }
-            ?country a dbpedia-owl:Country .
-            {
-                ?name_uri dbpedia-owl:wikiPageRedirects ?country ;
-                        rdfs:label ?label .
-            }
-            UNION
-            { ?country rdfs:label ?label }
-            FILTER(STR(?label) = ?search)
-        }""")
-        return [row[0] for row in results]
-    except HTTPError as er:
-        print "[ERROR] DBPedia is inaccessible! HTTP code: %s" % er.code
-    return []
-
-
-def find_countries_in_text(graph, text):
-    country_cands = re.findall('[,\n-]{1}([ ]*[A-Za-z]+[A-Za-z -]*)\n', text, re.I)
-    #print country_cands
-    return find_country_in_dbpedia(graph, country_cands)
-
-
-def find_universities_in_text(graph, text):
-    university_cands = re.findall('[ \n]{1}([A-Za-z]+[A-Za-z -]*[ ]*)[,\n]', text)
-    #print university_cands
-    return find_university_in_dbpedia(graph, university_cands)
-
-
-def convert_pdf_to_txt(path):
-    rsrcmgr = PDFResourceManager()
-    retstr = StringIO()
-    codec = 'utf-8'
-    laparams = LAParams()
-    device = TextConverter(rsrcmgr, retstr, codec=codec, laparams=laparams)
-    fp = file(path, 'rb')
-    interpreter = PDFPageInterpreter(rsrcmgr, device)
-    password = ""
-    maxpages = 1
-    caching = True
-    pagenos = set()
-    for page in PDFPage.get_pages(fp, pagenos, maxpages=maxpages, password=password, caching=caching,
-                                  check_extractable=True):
-        interpreter.process_page(page)
-    fp.close()
-    device.close()
-    result = retstr.getvalue()
-    retstr.close()
-    return result
-
+from base import Parser, find_university_in_dbpedia, create_proceedings_uri, create_publication_uri, clean_string
+from pdf_parser_lib_mock import PDFParserLibMock
+from namespaces import SWRC, DBPEDIAOWL 
+from rdflib.namespace import RDF, RDFS, FOAF, DCTERMS, DC, XSD
 
 class PDFParser(Parser):
     def __init__(self, grab, task, graph, spider=None):
@@ -85,43 +26,62 @@ class PDFParser(Parser):
                                          context_aware=False), namespace_manager=self.graph.namespace_manager)
 
     def write(self):
-        print "[TASK %s][PDFParser] Count of countries: %s. Count of universities %s" % (
-            self.task.url, len(self.data['countries']), len(self.data['universities']))
+        print "[TASK %s][PDFParser] Count of authors: %s. Count of cited works %s" % (
+            self.task.url, len(self.data['authors']), len(self.data['cited_works']))
         triples = []
 
-        results = self.graph.query("""SELECT DISTINCT ?pub {
-            ?pub a foaf:Document;
-                 foaf:homepage ?pub_link .
-            FILTER(?pub_link = '""" + self.task.url + """'^^xsd:anyURI)
-        }
-        LIMIT 1""")
-        publication = None
-        for row in results:
-            publication = row[0]
-            break
-        if publication is not None:
-            for country in self.data['countries']:
-                triples.append((publication, DBPEDIAOWL.country, URIRef(country)))
-            for university in self.data['universities']:
-                triples.append((publication, SWRC.affiliation, URIRef(university)))
+        proceedings = URIRef(self.data['workshop'])
+        resource = create_publication_uri(self.data['workshop'], self.data['file_name'])
+        
+        triples.append((proceedings, DCTERMS.hasPart, resource))
+        triples.append((resource, RDF.type, FOAF.Document))
+        triples.append((resource, DCTERMS.partOf, proceedings))
+        triples.append((resource, RDF.type, SWRC.InProceedings))
+        triples.append((resource, DC.title, Literal(self.data['title'], datatype=XSD.string)))
+
+
+        for author in self.data['authors']:
+                agent = URIRef(config.id['person'] + urllib.quote(author["full_name"].encode('utf-8')))
+                triples.append((agent, RDF.type, FOAF.Agent))
+                triples.append((agent, FOAF.name, Literal(author["full_name"], datatype=XSD.string)))
+                triples.append((resource, DC.creator, agent))
+                triples.append((resource, FOAF.maker, agent))
+                triples.append((agent, FOAF.made, resource))
+                
+                if "organization" in author:
+                    organization = URIRef(config.id['affiliation'] + urllib.quote(author["organization"]["title"].encode('utf-8')))
+                    triples.append((agent, SWRC.affiliation, organization))
+                    triples.append((organization, RDF.type, FOAF.Organization))
+                    # organization country
+ 
+                # cited works
+                # grants and projects
+                # ontologies
+       
         self.write_triples(triples)
 
     def parse_template_1(self):
+        
+        self.data['workshop'] = self.task.url.rsplit('/',1)[0]+"/"
+
         self.data['file_name'] = self.task.url.rsplit('/')[-1]
         self.data['id'] = self.data['file_name'].rsplit('.', 1)[:-1][0]
         self.data['file_location'] = "%s/%s" % (tempfile.gettempdir(), self.data['file_name'])
+
         try:
             try:
                 self.grab.response.save(self.data['file_location'])
-                first_page = convert_pdf_to_txt(self.data['file_location'])
-                try:
-                    title_end = re.search(r'Abstract|Introduction', first_page, re.I).start(0)
-                except:
-                    title_end = 500
-                title = first_page[:title_end]
-                self.data['countries'] = find_countries_in_text(self.dbpedia, title)
-                self.data['universities'] = find_universities_in_text(self.dbpedia, title)
 
+                parser_lib = PDFParserLibMock(self.data['file_location'])
+                self.data['title'] = parser_lib.getPaperTitle()
+                self.data['authors'] = parser_lib.getAuthors()
+                self.data['cited_works'] = parser_lib.getCitedWorks()
+                self.data['grants'] = parser_lib.getGrants()
+                self.data['fundings'] = parser_lib.getFundingAgencies()
+                self.data['eu_projects'] = parser_lib.getEUProjects()
+                self.data['new_ontologies'] = parser_lib.getNewOntologies()
+                self.data['related_ontologies'] = parser_lib.getRelatedOntologies()
+                
             except:
                 print "[TASK %s][PDFParser] Error parse%s" % (self.task.url, self.data['file_name'])
                 traceback.print_exc()
@@ -134,8 +94,3 @@ class PDFParser(Parser):
 
 if __name__ == '__main__':
     print "not runnable"
-    first_page = convert_pdf_to_txt('../paper6.pdf')
-    end = first_page.find('Abstract.')
-    title = first_page[:end]
-    print find_countries_in_text(title)
-    print find_universities_in_text(title)

@@ -13,6 +13,7 @@ id = dict(
     publication = sparqlstore['uri_base'] + "publication/",
     workshop = sparqlstore['uri_base'] + "workshop/",
     conference=sparqlstore['uri_base'] + "conference/"
+    affiliation = sparqlstore['uri_base'] + "affiliation/",
 )
 
 DEBUG = False
