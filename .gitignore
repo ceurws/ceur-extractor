@@ -2,4 +2,5 @@
 *.pyc
 ceur-ws-crawler/CeurWsParser/config.py
 ceur-ws-pdfs/CeurWsPDFParser/config.py
-*/run
+*/**/run
+*.ttl

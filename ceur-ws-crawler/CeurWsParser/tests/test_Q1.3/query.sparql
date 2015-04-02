@@ -3,7 +3,7 @@ SELECT DISTINCT ?proc ?creator_name WHERE {
         <http://ceur-ws.org/Vol-1085/>
         <http://ceur-ws.org/Vol-994/>
     } .
-    ?pub dcterms:partOf ?proc .
-    ?creator dc:creator ?pub ;
-             foaf:name ?creator_name .
+    ?pub dcterms:partOf ?proc ;
+         dc:creator ?creator .
+    ?creator foaf:name ?creator_name .
 }
