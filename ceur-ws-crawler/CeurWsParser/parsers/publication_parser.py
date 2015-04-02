@@ -227,6 +227,10 @@ class PublicationParser(Parser):
         self.end_template()
 
     def parse_template_4(self):
+        """
+        Examples:
+            - http://ceur-ws.org/Vol-44/
+        """
         self.begin_template()
         publications = []
 
@@ -270,7 +274,7 @@ class PublicationParser(Parser):
     def check_for_workshop_paper(publication):
         if rex.rex(publication['name'].strip(), r'^(preface|overview|introduction|einleitung|foreword)$', re.I, default=None):
             return False
-        if not publication['link'].endswith('.pdf'):
+        if not publication['link'].endswith(('.pdf', '.ps.gz', '.ps')):
             return False
         return True
 

@@ -23,18 +23,18 @@ mappings = dict(
     },
     parser_mappings={
         'index': [
-            #ProceedingsRelationsParser,
-            #WorkshopSummaryParser,
-            #WorkshopAcronymParser,
-            #WorkshopRelationsParser,
+            ProceedingsRelationsParser,
+            WorkshopSummaryParser,
+            WorkshopAcronymParser,
+            WorkshopRelationsParser,
             ProceedingsSummaryParser
         ],
         'workshop': [
-            #WorkshopPageParser,
-            #EditorAffiliationParser,
+            WorkshopPageParser,
+            EditorAffiliationParser,
             EditorNameExpandParser,
-            #JointWorkshopsEditorsParser,
-            #PublicationParser
+            JointWorkshopsEditorsParser,
+            PublicationParser
         ],
         'publication': [
             #PublicationNumOfPagesParser,
