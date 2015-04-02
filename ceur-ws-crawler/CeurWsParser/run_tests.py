@@ -18,7 +18,6 @@ QUERY_FILENAME = 'query.sparql'
 EXPECTED_FILENAME = 'expected.output'
 TESTS_ROOT_DIR = 'tests'
 
-
 def topython(graph, term):
     if isinstance(term, Literal):
         if term.datatype.eq(URIRef("http://www.w3.org/2001/XMLSchema#string")):
@@ -58,7 +57,7 @@ def print_list(l):
             print row
 
 
-def main(test):
+def main(args):
     number_of_passed = 0
     number_of_failed = 0
     number_of_failed_with_exception = 0
@@ -76,13 +75,13 @@ def main(test):
     graph.bind('dc', DC)
     graph.bind('timeline', TIMELINE)
 
-    for f in os.listdir(TESTS_ROOT_DIR):
-        if (test is not None and f == test) or test is None:
+    for f in os.listdir(args.testdir):
+        if ('test' in args and f == args.test) or not 'test' in args:
             print "========================="
             print "[TEST %s] Running..." % f
             try:
                 passed = True
-                with open('%s/%s/%s' % (TESTS_ROOT_DIR, f, QUERY_FILENAME)) as query_file:
+                with open('%s/%s/%s' % (args.testdir, f, QUERY_FILENAME)) as query_file:
                     result = graph.query(query_file.read())
 
                     results = []
@@ -92,7 +91,7 @@ def main(test):
 
                     print "[TEST %s] Number of results: %s" % (f, len(results))
 
-                    with open('%s/%s/%s' % (TESTS_ROOT_DIR, f, EXPECTED_FILENAME), 'rb') as expected_file:
+                    with open('%s/%s/%s' % (args.testdir, f, EXPECTED_FILENAME), 'rb') as expected_file:
                         expected = read_csv(expected_file)
                         print "[TEST %s] Number of expected results: %s" % (f, len(expected))
                         if len(results) != len(expected):
@@ -127,5 +126,6 @@ def main(test):
 if __name__ == '__main__':
     parser = argparse.ArgumentParser(description = 'Run the test SPARQL queries for Task 1')
     parser.add_argument('--test', required=False)
+    parser.add_argument('--testdir', required=False, default=TESTS_ROOT_DIR)
     args = parser.parse_args()
-    main(args.test)
+    main(args)

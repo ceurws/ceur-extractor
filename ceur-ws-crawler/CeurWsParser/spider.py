@@ -11,7 +11,7 @@ from rdflib.namespace import FOAF, DC, DCTERMS
 from namespaces import BIBO, SWRC, TIMELINE, SWC, SKOS, DBPEDIAOWL
 from parsers import WorkshopSummaryParser, WorkshopPageParser, ProceedingsSummaryParser, \
     PublicationParser, ProceedingsRelationsParser, PDFParser, WorkshopAcronymParser, WorkshopRelationsParser, \
-    JointWorkshopsEditorsParser, PublicationNumOfPagesParser, EditorAffiliationParser
+    JointWorkshopsEditorsParser, PublicationNumOfPagesParser, EditorAffiliationParser, EditorNameExpandParser
 import config
 
 
@@ -23,17 +23,18 @@ mappings = dict(
     },
     parser_mappings={
         'index': [
-            ProceedingsRelationsParser,
-            WorkshopSummaryParser,
-            WorkshopAcronymParser,
-            WorkshopRelationsParser,
+            #ProceedingsRelationsParser,
+            #WorkshopSummaryParser,
+            #WorkshopAcronymParser,
+            #WorkshopRelationsParser,
             ProceedingsSummaryParser
         ],
         'workshop': [
-            WorkshopPageParser,
-            EditorAffiliationParser,
-            JointWorkshopsEditorsParser,
-            PublicationParser
+            #WorkshopPageParser,
+            #EditorAffiliationParser,
+            EditorNameExpandParser,
+            #JointWorkshopsEditorsParser,
+            #PublicationParser
         ],
         'publication': [
             #PublicationNumOfPagesParser,

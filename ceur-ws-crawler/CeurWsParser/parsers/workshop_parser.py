@@ -564,3 +564,45 @@ class EditorAffiliationParser(Parser):
             triples.append((self.data['proceedings'], SWRC.affiliation, u))
 
         self.write_triples(triples)
+
+class EditorNameExpandParser(Parser):
+    def __init__(self, grab, task, graph, spider=None):
+        Parser.__init__(self, grab, task, graph, failonerror=False, spider=spider)
+
+    def begin_template(self):
+        self.data['volume_number'] = WorkshopPageParser.extract_volume_number(self.task.url)
+        self.data['proceedings'] = create_proceedings_uri(self.data['volume_number'])
+
+        self.editors = []
+        for editor in self.graph.objects(self.data['proceedings'], FOAF.maker):
+            editor_name = self.graph.value(editor, FOAF.name)
+            if(editor_name.split(' ', 1)[0].find('.') > 0):
+                self.editors.append((editor, editor_name))
+        if len(self.editors) == 0:
+            raise DataNotFound('Skipping http://ceur-ws.org/Vol-%s/, because the name are okay'
+                              % self.data['volume_number'])
+
+    def parse_template_1(self):
+        """
+        Examples:
+            - http://ceur-ws.org/Vol-1/
+        """
+        self.begin_template()
+
+        header = '\n'.join(self.grab.tree.xpath('/html/body//text()[preceding::*[contains(., "Edited by")] '
+                                                'and following::*[contains(.,"Table of Contents") or @class="CEURTOC"]]'))
+
+        self.data['editors'] = []
+        for turtle in self.editors:
+            regexp = u'.*(' + turtle[1].replace('.', '.*') + ').*'
+            match = re.match(regexp, header, re.I | re.S)
+            if match:
+                self.data['editors'].append((turtle[0], match.group(1)))
+
+    def write(self):
+        triples = []
+
+        for turtle in self.data['editors']:
+            triples.append((turtle[0], FOAF.name, Literal(turtle[1], datatype=XSD.string)))
+
+        self.write_triples(triples)

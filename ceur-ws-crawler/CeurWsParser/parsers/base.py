@@ -11,7 +11,6 @@ from rdflib import URIRef
 def create_proceedings_uri(volume_number):
     return URIRef("http://ceur-ws.org/Vol-%s/" % volume_number)
 
-
 def create_publication_uri(proceedings_url, file_name):
     return URIRef('%s#%s' % (proceedings_url, file_name))
 
@@ -85,7 +84,7 @@ class Parser:
                     # traceback.print_exc()
                     pass
         if not parsed:
-            print "[TASK %s][PARSER %s] proper parser method hasn't been found" % (self.task.url, self.__class__.__name__)
+            #print "[TASK %s][PARSER %s] proper parser method hasn't been found" % (self.task.url, self.__class__.__name__)
             if self.failonerror:
                 raise NoTemplateError("%s" % self.task.url)
         else:
