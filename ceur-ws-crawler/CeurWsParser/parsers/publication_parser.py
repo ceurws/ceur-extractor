@@ -86,7 +86,7 @@ class PublicationParser(Parser):
                 editors = []
                 for publication_editor in publication.findall('span/span[@rel="dcterms:creator"]'):
                     publication_editor_name = publication_editor.find('span[@property="foaf:name"]').text_content()
-                    editors.append(clean_string(publication_editor_name))
+                    editors.append(clean_string(publication_editor_name).strip())
                 file_name = publication_link.rsplit('.pdf')[0].rsplit('/')[-1]
                 publication_object = {
                     'name': name,

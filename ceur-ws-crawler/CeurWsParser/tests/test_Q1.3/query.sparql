@@ -1,7 +1,13 @@
 SELECT DISTINCT ?proc ?creator_name WHERE {
     VALUES ?proc {
         <http://ceur-ws.org/Vol-1085/>
+        <http://ceur-ws.org/Vol-1044/>
         <http://ceur-ws.org/Vol-994/>
+        <http://ceur-ws.org/Vol-919/>
+        <http://ceur-ws.org/Vol-902/>
+        <http://ceur-ws.org/Vol-778/>
+        <http://ceur-ws.org/Vol-571/>
+        <http://ceur-ws.org/Vol-232/>
     } .
     ?pub dcterms:partOf ?proc ;
          dc:creator ?creator .
