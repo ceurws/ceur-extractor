@@ -37,7 +37,7 @@ mappings = dict(
             PublicationParser
         ],
         'publication': [
-            #PublicationNumOfPagesParser,
+            PublicationNumOfPagesParser,
             #PDFParser
         ]
     }
