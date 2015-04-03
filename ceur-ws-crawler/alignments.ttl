@@ -1,0 +1,57 @@
+@prefix dc: <http://purl.org/dc/elements/1.1/> .
+@prefix dbpedia-owl: <http://dbpedia.org/ontology/> .
+@prefix foaf: <http://xmlns.com/foaf/0.1/> .
+@prefix timeline: <http://purl.org/NET/c4dm/timeline.owl#> .
+@prefix xml: <http://www.w3.org/XML/1998/namespace> .
+@prefix dcterms: <http://purl.org/dc/terms/> .
+@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix bibo: <http://purl.org/ontology/bibo/> .
+@prefix xsd: <http://www.w3.org/2001/XMLSchema#> .
+@prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+@prefix swrc: <http://swrc.ontoware.org/ontology#> .
+@prefix skos: <http://www.w3.org/2004/02/skos/core#> .
+@prefix swc: <http://data.semanticweb.org/ns/swc/ontology#> .
+@prefix owl: <http://www.w3.org/2002/07/owl#> .
+
+
+# Workshop
+
+bibo:Workshop     owl:equivalentClass     swrc:Workshop .
+bibo:shortTitle   owl:equivalentProperty  swrc:eventTitle .
+swrc:edition      owl:equivalentProperty  bibo:edition .
+swc:isSubEventOf  owl:equivalentProperty  swrc:atEvent .
+
+timeline:beginsAtDateTime owl:equivalentProperty  swrc:startDate .
+timeline:endsAtDateTime   owl:equivalentProperty  swrc:endDate .
+timeline:atDate           owl:equivalentProperty  [ swrc:date , bibo:time ] .
+
+
+# Proceedings
+
+# TODO foaf:maker
+bibo:Proceedings  owl:equivalentClass     swrc:Proceedings .
+swrc:editor       owl:equivalentProperty  bibo:editor .
+dc:hasPart        owl:equivalentProperty  [ bibo:isPartOf, swrc:hasParts ] .
+dc:title            owl:equivalentProperty  [ swrc:title , bibo:title ] . # bibo is object property
+
+
+# Paper
+
+bibo:Article        owl:equivalentClass     [ swrc:InProceedings, swc:InvitedPaper ] .
+bibo:numPages       owl:equivalentProperty  swrc:pages .
+dc:creator          owl:equivalentProperty  [ swrc:contributor , bibo:contributor] .
+
+
+# Person
+
+foaf:Agent  owl:equivalentClass     [ swrc:Person , bibo:Person ] .
+foaf:name   owl:equivalentProperty  [ swrc:name , bibo:name ] .
+
+
+
+
+
+
+
+
+
