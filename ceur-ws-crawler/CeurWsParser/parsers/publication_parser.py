@@ -39,7 +39,7 @@ class PublicationParser(Parser):
 
     @staticmethod
     def is_invited(publication):
-        if rex.rex(publication['link'], r'.*(keynote|invite).*', re.I, default=None):
+        if rex.rex(publication['link'], r'.*(keynote|invite|talk|-inv-).*', re.I, default=None):
             return True
         else:
             return False

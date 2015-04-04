@@ -4,6 +4,12 @@ SELECT (STRDT(?prefix, xsd:string) AS ?prefix_a) (SUM(?edition) AS ?edition_coun
       VALUES ?prefix {
         "Linked Data on the Web"
         "Workshop on Modular Ontologies"
+        "Information Technologies - Applications and Theory"
+        "iStar"
+        "Neural-Symbolic Learning and Reasoning"
+        "Decision Support in Software Engineering"
+        "Enterprise Modelling and Ontologies for Interoperability"
+        "Model Driven Development of Advanced User Interfaces"
       }
       ?workshop a bibo:Workshop ;
         rdfs:label ?workshop_name .
@@ -18,6 +24,12 @@ SELECT (STRDT(?prefix, xsd:string) AS ?prefix_a) (SUM(?edition) AS ?edition_coun
       VALUES ?prefix {
         "Linked Data on the Web"
         "Workshop on Modular Ontologies"
+        "Information Technologies - Applications and Theory"
+        "iStar"
+        "Neural-Symbolic Learning and Reasoning"
+        "Decision Support in Software Engineering"
+        "Enterprise Modelling and Ontologies for Interoperability"
+        "Model Driven Development of Advanced User Interfaces"
       }
       ?workshop a bibo:Workshop ;
         rdfs:label ?workshop_name .
