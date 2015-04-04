@@ -31,13 +31,13 @@ mappings = dict(
         ],
         'workshop': [
             WorkshopPageParser,
-            EditorAffiliationParser,
+            #EditorAffiliationParser,
             EditorNameExpandParser,
             JointWorkshopsEditorsParser,
-            PublicationParser
+            #PublicationParser
         ],
         'publication': [
-            PublicationNumOfPagesParser,
+            #PublicationNumOfPagesParser,
             #PDFParser
         ]
     }

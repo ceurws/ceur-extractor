@@ -1,7 +1,20 @@
 SELECT (STRDT(?search, xsd:string) AS ?search_a) ?editor_name WHERE {
   {
     SELECT ?search ?workshop ?editor WHERE {
-      VALUES ?search {"Linked Data on the Web" "Semantic Publishing" "Uncertainty Reasoning for the Semantic Web"} .
+        VALUES ?search {
+            "Linked Data on the Web"
+            "Semantic Publishing"
+            "Uncertainty Reasoning for the Semantic Web"
+            "Neural-Symbolic Learning and Reasoning"
+            "Workshop on Formal Models"
+            "Enterprise Modelling and Ontologies for Interoperability"
+            "Ontologies and their Applications"
+            "Web Oriented Software Technologies"
+            "Philosophy and Informatics"
+            "Peer-to-Peer Knowledge Management"
+            "Modeling and Retrieval of Context"
+            "Popularize Artificial Intelligence"
+        } .
       ?workshop a bibo:Workshop;
                 rdfs:label ?label .
       FILTER(strStarts(?label, ?search)) .
@@ -12,14 +25,27 @@ SELECT (STRDT(?search, xsd:string) AS ?search_a) ?editor_name WHERE {
   }
   {
     SELECT ?search (COUNT(?workshop) AS ?count) WHERE {
-      VALUES ?search {"Linked Data on the Web" "Semantic Publishing" "Uncertainty Reasoning for the Semantic Web"} .
-      ?workshop a bibo:Workshop;
+        VALUES ?search {
+            "Linked Data on the Web"
+            "Semantic Publishing"
+            "Uncertainty Reasoning for the Semantic Web"
+            "Neural-Symbolic Learning and Reasoning"
+            "Workshop on Formal Models"
+            "Enterprise Modelling and Ontologies for Interoperability"
+            "Ontologies and their Applications"
+            "Web Oriented Software Technologies"
+            "Philosophy and Informatics"
+            "Peer-to-Peer Knowledge Management"
+            "Modeling and Retrieval of Context"
+            "Popularize Artificial Intelligence"
+        } .
+        ?workshop a bibo:Workshop;
                 rdfs:label ?label .
-      FILTER(strStarts(?label, ?search)) .
+        FILTER(strStarts(?label, ?search)) .
     }
     GROUP BY ?search
   }
   ?editor foaf:name ?editor_name .
 }
-GROUP BY ?search ?editor_name
-HAVING (COUNT(?search) = MAX(?count))
+GROUP BY ?search ?editor_name ?count
+HAVING (str(COUNT(?search)) = str(?count))
