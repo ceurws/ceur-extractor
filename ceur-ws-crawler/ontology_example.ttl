@@ -30,7 +30,7 @@
                         bibo:presentedAt    swrc:Workshop ;
                         swrc:editor         swrc:Person ;
                         swrc:hasParts       swrc:InProceedings ; # maybe this property is not for this
-                        swrc:contributor    swrc:Person ;
+                        swrc:editor         swrc:Person ;
                         swrc:title          "..."^xsd:string ;
                         rdfs:seeAlso        <...URI of another proceedings in this series...> . 
 
