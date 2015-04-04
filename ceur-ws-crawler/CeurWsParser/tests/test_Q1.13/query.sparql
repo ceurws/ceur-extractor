@@ -8,6 +8,6 @@ SELECT DISTINCT (STRDT(?acrn, xsd:string) AS ?acrn_str) (YEAR(?conf_date) AS ?co
   ?workshop swc:isSubEventOf ?conf .
   ?proc bibo:presentedAt ?workshop .
   FILTER( ?conf_name = ?acrn && STR(YEAR(?conf_date)) = ?year )
-  FILTER EXISTS { ?workshop skos:related [] . }
-  FILTER NOT EXISTS { [] skos:related ?workshop . }
+  FILTER EXISTS { ?workshop rdfs:seeAlso [] . }
+  FILTER NOT EXISTS { [] rdfs:seeAlso ?workshop . }
 }
