@@ -14,44 +14,49 @@
 @prefix owl: <http://www.w3.org/2002/07/owl#> .
 
 
-# Workshop
+## Workshop ##
+swrc:Workshop     owl:equivalentClass     bibo:Workshop .
+swrc:eventTitle   owl:equivalentProperty  [ bibo:title , 
+                                            bibo:shortTitle,
+                                            dcterms:title ] . 
+swrc:edition      owl:equivalentProperty  [ bibo:edition ,
+                                            dcterms:hasVersion ].
+swrc:atEvent      owl:equivalentProperty  bibo:presentedAt .
+swrc:date         owl:equivalentProperty  [ bibo:date , dcterms:date ] .
 
-bibo:Workshop     owl:equivalentClass     swrc:Workshop .
-bibo:shortTitle   owl:equivalentProperty  swrc:eventTitle .
-swrc:edition      owl:equivalentProperty  bibo:edition .
-swc:isSubEventOf  owl:equivalentProperty  swrc:atEvent .
-
-timeline:beginsAtDateTime owl:equivalentProperty  swrc:startDate .
-timeline:endsAtDateTime   owl:equivalentProperty  swrc:endDate .
-timeline:atDate           owl:equivalentProperty  [ swrc:date , bibo:time ] .
-
-
-# Proceedings
-
-# TODO foaf:maker
-bibo:Proceedings  owl:equivalentClass     swrc:Proceedings .
-swrc:editor       owl:equivalentProperty  bibo:editor .
-dc:hasPart        owl:equivalentProperty  [ bibo:isPartOf, swrc:hasParts ] .
-dc:title            owl:equivalentProperty  [ swrc:title , bibo:title ] . # bibo is object property
+swrc:eventTitle   owl:equivalentProperty  [ foaf:title ,
+                                            bibo:shortTitle ,
+                                            dcterms:title ] .
 
 
-# Paper
-
-bibo:Article        owl:equivalentClass     [ swrc:InProceedings, swc:InvitedPaper ] .
-bibo:numPages       owl:equivalentProperty  swrc:pages .
-dc:creator          owl:equivalentProperty  [ swrc:contributor , bibo:contributor] .
-
-
-# Person
-
-foaf:Agent  owl:equivalentClass     [ swrc:Person , bibo:Person ] .
-foaf:name   owl:equivalentProperty  [ swrc:name , bibo:name ] .
-
-
-
-
+## Proceedings ##
+swrc:Proceedings    owl:equivalentClass     [ bibo:Proceedings ,
+                                              foaf:Document ,
+                                              dc:Text ] .
+swrc:homepage       owl:equivalentProperty  foaf:homepage .
+swrc:creationDate   owl:equivalentProperty  [ bibo:created ,
+                                              dcterms:date ] .
+swrc:editor         owl:equivalentProperty  [ bibo:editor ,
+                                              foaf:maker ,
+                                              dcterms:creator ] .
+swrc:title          owl:equivalentProperty  [ bibo:title , # bibo:title is annotation property - should we remove this mapping?
+                                              dcterms:title ,
+                                              foaf:title ] .
 
 
+## Paper ##
+swrc:InProceedings  owl:equivalentClass     [ bibo:Article ,
+                                              foaf:Document ,
+                                              dc:Text ] .
+swrc:creator        owl:equivalentProperty  [ bibo:contributor ,
+                                              foaf:maker ,
+                                              dcterms:creator ] .
 
 
-
+## Person ##
+swrc:Person   owl:equivalentClass     [ bibo:Person ,
+                                        foaf:Person ,
+                                        dcterms:Agent ] .
+swrc:name     owl:equivalentProperty  [ bibo:name ,
+                                        foaf:name ,
+                                        dcterms:title ] .

@@ -30,17 +30,17 @@
                         bibo:presentedAt    swrc:Workshop ;
                         swrc:editor         swrc:Person ;
                         swrc:hasParts       swrc:InProceedings ; # maybe this property is not for this
-                        swrc:contributor    swrc:Person ;
+                        swrc:editor         swrc:Person ;
                         swrc:title          "..."^xsd:string ;
                         rdfs:seeAlso        <...URI of another proceedings in this series...> . 
 
 
 ## Paper ##
-<...paper URI...>       a                   swrc:InProceedings ,
-                                            swc:InvitedPaper ; # if a paper is the invited one
-                        swrc:pages          "..."^xsd:integer ;
+<...paper URI...>       a                   [ swrc:InProceedings ,
+                                              swc:InvitedPaper ] ; # add it if a paper is invited one
+                        bibo:numPages       "..."^xsd:integer ;
                         bibo:reproducedIn   swrc:Proceedings ;
-                        swrc:identifier     "..."^xsd:anyURI ; # for DOI, instead of homepage
+                        swrc:homepage     "..."^xsd:string ;
                         swrc:creator        swrc:Person ;
                         swrc:title          "..."^xsd:string .
 
