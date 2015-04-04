@@ -1,22 +1,28 @@
-SELECT ?proc ?prefix {
+SELECT ?proc ?name ?proc_first {
   {
     SELECT ?proc (MIN(?date) AS ?min_date) {
       VALUES ?proc {
+        <http://ceur-ws.org/Vol-1186/>
+        <http://ceur-ws.org/Vol-1128/>
         <http://ceur-ws.org/Vol-1074/>
         <http://ceur-ws.org/Vol-1049/>
+        <http://ceur-ws.org/Vol-943/>
+        <http://ceur-ws.org/Vol-784/>
+        <http://ceur-ws.org/Vol-862/>
+        <http://ceur-ws.org/Vol-115/>
       }
-      ?proc bibo:presentedAt|bibo:presentedAt/skos:related ?workshop .
+      ?proc bibo:presentedAt|bibo:presentedAt/rdfs:seeAlso ?workshop .
       { ?workshop timeline:atDate ?date . }
       UNION
       { ?workshop timeline:beginsAtDateTime ?date . }
     }
     GROUP BY ?proc
   }
-  ?proc bibo:presentedAt|bibo:presentedAt/skos:related ?workshop .
+  ?proc bibo:presentedAt|bibo:presentedAt/rdfs:seeAlso ?workshop .
   ?workshop rdfs:label ?name .
   { ?workshop timeline:atDate ?date . }
   UNION
   { ?workshop timeline:beginsAtDateTime ?date . }
+  ?proc_first bibo:presentedAt ?workshop .
   FILTER(?date = ?min_date)
-  BIND(REPLACE(?name, "\\s+(20|19)\\d{2}.*$","") AS ?prefix)
 }
