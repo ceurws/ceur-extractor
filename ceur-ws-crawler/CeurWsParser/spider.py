@@ -31,7 +31,7 @@ mappings = dict(
         ],
         'workshop': [
             WorkshopPageParser,
-            #EditorAffiliationParser,
+            EditorAffiliationParser,
             EditorNameExpandParser,
             JointWorkshopsEditorsParser,
             PublicationParser

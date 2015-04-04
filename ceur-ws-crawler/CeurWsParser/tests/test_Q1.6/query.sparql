@@ -1,8 +1,17 @@
 SELECT (STRDT(?search, xsd:string) AS ?search_a) ?proc WHERE {
-  VALUES ?search {"Linked Data on the Web" "Workshop on Modular Ontologies"}
-  ?workshop a bibo:Workshop;
+    VALUES ?search {
+        "Linked Data on the Web"
+        "Workshop on Modular Ontologies"
+        "Information Technologies - Applications and Theory"
+        "iStar"
+        "Neural-Symbolic Learning and Reasoning"
+        "Decision Support in Software Engineering"
+        "Enterprise Modelling and Ontologies for Interoperability"
+        "Model Driven Development of Advanced User Interfaces"
+    }
+    ?workshop a bibo:Workshop;
             rdfs:label ?label .
-  ?proc a swrc:Proceedings ;
+    ?proc a swrc:Proceedings ;
         bibo:presentedAt ?workshop .
-  FILTER(strStarts(?label, ?search)) .
+    FILTER(strStarts(?label, ?search)) .
 }
