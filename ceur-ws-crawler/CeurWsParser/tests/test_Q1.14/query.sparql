@@ -1,6 +1,8 @@
 SELECT (STRDT(?acrn, xsd:string) AS ?acrn_str) ?proc ?publication {
   VALUES (?acrn ?proc) {
     ("BeRSys" <http://ceur-ws.org/Vol-981/>)
+    ("MathUI" <http://ceur-ws.org/Vol-1186/>)
+    ("FEOSW" <http://ceur-ws.org/Vol-862/>)
   }
   ?workshop bibo:shortTitle ?w_title .
   ?publication a swrc:InProceedings ;
