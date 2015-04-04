@@ -36,11 +36,11 @@
 
 
 ## Paper ##
-<...paper URI...>       a                   swrc:InProceedings ,
-                                            swc:InvitedPaper ; # if a paper is the invited one
-                        swrc:pages          "..."^xsd:integer ;
+<...paper URI...>       a                   [ swrc:InProceedings ,
+                                              swc:InvitedPaper ] ; # add it if a paper is invited one
+                        bibo:numPages       "..."^xsd:integer ;
                         bibo:reproducedIn   swrc:Proceedings ;
-                        swrc:identifier     "..."^xsd:anyURI ; # for DOI, instead of homepage
+                        swrc:homepage     "..."^xsd:string ;
                         swrc:creator        swrc:Person ;
                         swrc:title          "..."^xsd:string .
 
