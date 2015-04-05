@@ -12,11 +12,11 @@
 
 ## Workshop ##
 <...workshop URI...>    a                   swrc:Workshop ;
-                        swrc:eventTitle     "..."^xsd:string ;
+                        swrc:eventTitle     "..."^^xsd:string ;
                         bibo:shortTitle     "..."^^xsd:string ;
                         swrc:edition        "..."^^xsd:integer ;
                         swrc:atEvent        <...conference URI...> ;
-                        swrc:startDate      "..."^xsd:date ;
+                        swrc:startDate      "..."^^xsd:date ;
                         swrc:endDate        "..."^^xsd:date ;
                         rdfs:seeAlso        <...URI of another workshop in this series...> . 
 # If workshop took one day (swrc:date is super property of swrc:startDate and swrc:endDate)
@@ -25,29 +25,29 @@
 
 ## Proceedings ##
 <...proceedings URI...> a                   swrc:Proceedings ;
-                        swrc:homepage       "..."^xsd:string ; # Yes, string!
-                        swrc:creationDate   "..."^xsd:date ;
+                        swrc:homepage       "..."^^xsd:string ; # Yes, string!
+                        swrc:creationDate   "..."^^xsd:date ;
                         bibo:presentedAt    swrc:Workshop ;
                         swrc:editor         swrc:Person ;
                         swrc:hasParts       swrc:InProceedings ; # maybe this property is not for this
                         swrc:editor         swrc:Person ;
-                        swrc:title          "..."^xsd:string ;
+                        swrc:title          "..."^^xsd:string ;
                         rdfs:seeAlso        <...URI of another proceedings in this series...> . 
 
 
 ## Paper ##
 <...paper URI...>       a                   [ swrc:InProceedings ,
                                               swc:InvitedPaper ] ; # add it if a paper is invited one
-                        bibo:numPages       "..."^xsd:integer ;
+                        bibo:numPages       "..."^^xsd:integer ;
                         bibo:reproducedIn   swrc:Proceedings ;
-                        swrc:homepage     "..."^xsd:string ;
+                        swrc:homepage     "..."^^xsd:string ;
                         swrc:creator        swrc:Person ;
-                        swrc:title          "..."^xsd:string .
+                        swrc:title          "..."^^xsd:string .
 
 
 ## Person ##
 <...person URI...>  a           swrc:Person ;
-                    swrc:name   "..."^xsd:string .
+                    swrc:name   "..."^^xsd:string .
 
 
 
