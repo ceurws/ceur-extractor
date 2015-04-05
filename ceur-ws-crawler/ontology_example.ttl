@@ -10,6 +10,12 @@
 # so if you see predicates/entities from another ontologies
 # that means that there were no suitable one in SWRC.
 
+## Conference ##
+<...conference URI...>  a                 swrc:Conference ;
+                        swrc:eventTitle   "..."^^xsd:string ;
+                        swrc:date         "..."^^xsd:gYear .
+
+
 ## Workshop ##
 <...workshop URI...>    a                   swrc:Workshop ;
                         swrc:eventTitle     "..."^^xsd:string ;
@@ -40,7 +46,7 @@
                                               swc:InvitedPaper ] ; # add it if a paper is invited one
                         bibo:numPages       "..."^^xsd:integer ;
                         bibo:reproducedIn   swrc:Proceedings ;
-                        swrc:homepage     "..."^^xsd:string ;
+                        swrc:homepage       "..."^^xsd:string ;
                         swrc:creator        swrc:Person ;
                         swrc:title          "..."^^xsd:string .
 
