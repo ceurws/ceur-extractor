@@ -35,6 +35,7 @@
                         swrc:creationDate   "..."^^xsd:date ;
                         bibo:presentedAt    swrc:Workshop ;
                         swrc:editor         swrc:Person ;
+                        swrc:affiliation    <...>^^xsd:anyURI ;  # From which university are editors
                         swrc:hasParts       swrc:InProceedings ; # maybe this property is not for this
                         swrc:editor         swrc:Person ;
                         swrc:title          "..."^^xsd:string ;
