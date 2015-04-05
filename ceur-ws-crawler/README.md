@@ -2,10 +2,10 @@
 
 ##Required modules:
 The following Python modules need to installed:
- - RDFLib (https://github.com/RDFLib/rdflib),
- - PDFMiner (http://www.unixuser.org/~euske/python/pdfminer/),
- - Grab (http://grablib.org/),
- - PyPDF2 (https://github.com/mstamy2/PyPDF2).
+ - RDFLib 4.1.2 (https://github.com/RDFLib/rdflib),
+ - PDFMiner 20140328 (http://www.unixuser.org/~euske/python/pdfminer/),
+ - Grab 0.4.13 (http://grablib.org/),
+ - PyPDF2 1.23 (https://github.com/mstamy2/PyPDF2).
 
 ##Configuration
 All configuration settings should be in ``config.py`` file which should be created from ``config.py.example`` by renaming it.
