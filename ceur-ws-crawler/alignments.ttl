@@ -24,10 +24,6 @@ swrc:edition      owl:equivalentProperty  [ bibo:edition ,
 swrc:atEvent      owl:equivalentProperty  bibo:presentedAt .
 swrc:date         owl:equivalentProperty  [ bibo:date , dcterms:date ] .
 
-swrc:eventTitle   owl:equivalentProperty  [ foaf:title ,
-                                            bibo:shortTitle ,
-                                            dcterms:title ] .
-
 
 ## Proceedings ##
 swrc:Proceedings    owl:equivalentClass     [ bibo:Proceedings ,
