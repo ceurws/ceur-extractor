@@ -54,6 +54,7 @@
 ## Person ##
 <...person URI...>  a           swrc:Person ;
                     swrc:name   "..."^^xsd:string .
+                    # Note, authorship is defined with the paper
 
 
 
