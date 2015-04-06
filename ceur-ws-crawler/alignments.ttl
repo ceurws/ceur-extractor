@@ -60,4 +60,5 @@ swrc:Person   owl:equivalentClass     [ bibo:Person ,
                                         dcterms:Agent ] .
 swrc:name     owl:equivalentProperty  [ bibo:name ,
                                         foaf:name ,
-                                        dcterms:title ] .
+                                        dcterms:title,
+                                        rdfs:label ] .
