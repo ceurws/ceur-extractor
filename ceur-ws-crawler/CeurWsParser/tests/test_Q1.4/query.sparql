@@ -2,6 +2,7 @@ SELECT ?proc (AVG(?pages) AS ?avg) {
   VALUES ?proc {
     <http://ceur-ws.org/Vol-1085/>
     <http://ceur-ws.org/Vol-994/>
+    <http://ceur-ws.org/Vol-571/>
   }
   ?proc dcterms:hasPart ?pub .
   ?pub bibo:numPages ?pages .
