@@ -18,11 +18,10 @@ swrc:Conference		owl:equivalentClass     bibo:Conference, swpo:Conference ;
 			rdfs:subClassOf		swc:OrganizedEvent .
 
 ## Workshop ##
-swrc:Workshop     	owl:equivalentClass     bibo:Workshop, swpo:Workshop .
+swrc:Workshop     	owl:equivalentClass     bibo:Workshop, swpo:Workshop ;
+			rdfs:subClassOf		swc:OrganizedEvent .
 swrc:eventTitle  	rdfs:subPropertyOf	rdfs:label, dcterms:title .
 bibo:shortTitle		rdfs:subPropertyOf	rdfs:label, dcterms:title .
- 
-#swrc:edition      	owl:equivalentProperty  bibo:edition, dcterms:hasVersion .
 swc:isSubEventOf	owl:equivalentProperty  swrc:atEvent .
 timeline:atDate         owl:equivalentProperty  swrc:date ;
 			rdfs:subPropertyOf	dcterms:date .
@@ -36,8 +35,8 @@ dcterms:issued   	owl:equivalentProperty  bibo:created, swrc:creationDate ;
 			rdfs:subPropertyOf	dcterms:date .
 swrc:editor         	owl:equivalentProperty  bibo:editor ;
 			rdfs:subClassOf		foaf:maker, dcterms:creator .
-dc:title          	owl:equivalentProperty  bibo:title, dcterms:title, foaf:title, swrc:title ;
-			rdfs:subPropertyOf	rdfs:label .
+swrc:title          	owl:equivalentProperty  foaf:title ;
+			rdfs:subPropertyOf	rdfs:label, dcterms:title, dc:title .
 
 ## Paper ##
 swrc:InProceedings  	owl:equivalentClass     bibo:Article ;

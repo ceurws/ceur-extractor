@@ -58,7 +58,7 @@ class PublicationParser(Parser):
             triples.append((resource, RDF.type, FOAF.Document))
             triples.append((resource, DCTERMS.partOf, proceedings))
             triples.append((resource, RDF.type, SWRC.InProceedings))
-            triples.append((resource, DC.title, Literal(publication['name'], datatype=XSD.string)))
+            triples.append((resource, SWRC.title, Literal(publication['name'], datatype=XSD.string)))
             triples.append((resource, FOAF.homepage, Literal(publication['link'], datatype=XSD.anyURI)))
             if publication['is_invited']:
                 triples.append((resource, RDF.type, SWC.InvitedPaper))

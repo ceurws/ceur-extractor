@@ -258,9 +258,9 @@ class WorkshopSummaryParser(ListParser):
             proceedings = URIRef(workshop['url'])
             triples.append((resource, RDF.type, BIBO.Workshop))
             if 'label' in workshop:
-                triples.append((resource, RDFS.label, Literal(workshop['label'], datatype=XSD.string)))
+                triples.append((resource, SWRC.eventTitle, Literal(workshop['label'], datatype=XSD.string)))
             elif 'short_label' in workshop:
-                triples.append((resource, RDFS.label, Literal(workshop['short_label'], datatype=XSD.string)))
+                triples.append((resource, SWRC.eventTitle, Literal(workshop['short_label'], datatype=XSD.string)))
             else:
                 raise Exception('[WORKSHOP %s] Doesn\'t have a label!' % workshop['url'])
             triples.append((proceedings, BIBO.presentedAt, resource))
@@ -289,7 +289,7 @@ class WorkshopSummaryParser(ListParser):
             if 'conf_acronym' in workshop and 'conf_year' in workshop:
                 conference = create_conference_uri(workshop['conf_acronym'], workshop['conf_year'])
                 triples.append((conference, RDF.type, SWRC.Conference))
-                triples.append((conference, RDFS.label, Literal(workshop['conf_acronym'], datatype=XSD.string)))
+                triples.append((conference, BIBO.shortTitle, Literal(workshop['conf_acronym'], datatype=XSD.string)))
                 triples.append((conference, TIMELINE.atDate, Literal(workshop['conf_year'], datatype=XSD.gYear)))
                 triples.append((resource, SWC.isSubEventOf, conference))
 
@@ -376,7 +376,7 @@ class WorkshopPageParser(Parser):
         proceedings = create_proceedings_uri(self.data['volume_number'])
         conference = URIRef(config.id['conference'] + urllib.quote(self.data['acronym'] + "-" + self.data['year']))
         triples.append((conference, RDF.type, SWRC.Conference))
-        triples.append((conference, RDFS.label, Literal(self.data['acronym'], datatype=XSD.string)))
+        triples.append((conference, BIBO.shortTitle, Literal(self.data['acronym'], datatype=XSD.string)))
         triples.append((conference, TIMELINE.atDate, Literal(self.data['year'], datatype=XSD.gYear)))
         for workshop in self.graph.objects(proceedings, BIBO.presentedAt):
             triples.append((workshop, SWC.isSubEventOf, conference))

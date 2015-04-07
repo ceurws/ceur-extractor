@@ -53,7 +53,7 @@ class ProceedingsSummaryParser(Parser):
         for proceedings in self.data['proceedings_list']:
             resource = URIRef(proceedings['url'])
             triples.append((resource, RDF.type, SWRC.Proceedings))
-            triples.append((resource, DC.title, Literal(proceedings['label'], datatype=XSD.string)))
+            triples.append((resource, SWRC.title, Literal(proceedings['label'], datatype=XSD.string)))
             triples.append((resource, FOAF.homepage, Literal(proceedings['url'], datatype=XSD.anyURI)))
             triples.append((
                 resource,
