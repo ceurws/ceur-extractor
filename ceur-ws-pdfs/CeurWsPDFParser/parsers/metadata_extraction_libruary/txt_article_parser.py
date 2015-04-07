@@ -9,7 +9,7 @@ if sys.version[0] == '3':
 def main():
     test_dir = False
     if test_dir:
-        input_dir = "pdfs"
+        input_dir = r"D:\JOB\SemanticChallenge\pdf_task\pdfs"
 
         files = [elem for elem in os.listdir(input_dir)]
 
@@ -113,9 +113,12 @@ def get_inf_from_bib_array(bibliography_array):
         outpt = []
         for i in range(len(bibliography_array)):
             elem = bibliography_array[i]
+
+            elem = re.sub(r"\(cid:\d+\)", "", elem)
+
             if elem.strip() == "":
                 continue
-            if i == 5:
+            if i == 12:
                 a = 1
             cur_elem = {}
 
@@ -133,15 +136,26 @@ def get_inf_from_bib_array(bibliography_array):
                 if re.search(r"\-|\.", doi[0]):
                     cur_elem["doi"] = delete_not_printable(doi[0])
 
+
             title = get_title(elem)
+
             if title == '':
+                print("Couldn't find title in {0}".format(elem))
+                continue
                 a = 1
-            cur_elem['title'] = delete_not_printable(title)
+            else:
+                ind_upper = 0
+                for ind_chr in range(len(title)):
+                    if title[ind_chr].isupper():
+                        ind_upper = ind_chr
+                        break
+                cur_elem['title'] = delete_not_printable(title[ind_upper:])
             a = 1
 
-            journal = get_journal(elem, title)
+            journal = get_journal(elem, cur_elem['title'])
             cur_elem["journal"] = delete_not_printable(journal)
             if cur_elem["title"] != "":
+                print("{0} {1}".format(i, cur_elem))
                 outpt.append(cur_elem)
         #print(outpt)
         a = 1
@@ -199,22 +213,60 @@ def get_title(text):
                     title = begin_title[:end_title_re.start()+len(end_title_re.group(2))].strip()
                 a = 1
             a = 1
+        #elif re.search(r"[A-Z]\. [A-Z][a-z]+\. \\", text):
+        elif re.search(r"[A-Z](\.) [A-Z][a-z]+(\.|,) \\", text):
+            pos_end_author_re = re.search(r"[A-Z]\. [A-Z][a-z]+(\.|,) \\", text)
+            begin_title = text[pos_end_author_re.end():]
+            end_title_re = re.search(r"(\w{3,}\. )|(\",)|(\"\.)", begin_title)
+            if end_title_re:
+                title = begin_title[:end_title_re.start()].strip()
+            a = 1
         elif re.search(r"^[A-Z]\.", text):
             cur_search = re.search(r"[A-Z]\. [A-Z][a-z]+\. [A-Z]", text)
             if cur_search:
                 begin_title = text[cur_search.end()-1:].strip()
-                end_title_re = re.search(r"(\w{3,}\. )|(\",)", begin_title)
-                if end_title_re:
-                    title = begin_title[:end_title_re.start()].strip()
-            else:
                 a = 1
+##                end_title_re = re.search(r"(\w{3,}\. )|(\",)", begin_title)
+##                if end_title_re:
+##                    title = begin_title[:end_title_re.start()].strip()
+            else:
+                cur_search = re.search(r"[A-Z]\. [A-Z][a-z]+:", text)
+                if cur_search:
+                    begin_title = text[cur_search.end():].strip()
+
+                else:
+                    begin_title = re.sub(r"^[A-Z]\. [A-Z][a-z]+", "", text)
+                    ind_upper = 0
+                    for ind_chr in range(len(begin_title)):
+                        if begin_title[ind_chr].isupper():
+                            ind_upper = ind_chr
+                            break
+                    begin_title = begin_title[ind_upper:]
+                a = 1
+            end_title_re = re.search(r"(\w{3,}\. )|(\",)|(\"\.)", begin_title)
+            if end_title_re:
+                title = begin_title[:end_title_re.start()].strip()
             a = 1
         elif re.search(r"^[A-Z][a-z]+ [A-Z]\.", text):
+            last_author = re.search(r"[A-Z][a-z]+ [A-Z]\. [A-Z]", text)
+            if last_author:
+                begin_title = text[last_author.end()-1:]
+                end_title_re = re.search(r"((\w{3,})\. )|(\",)", begin_title)
+                if end_title_re:
+                    title = begin_title[:end_title_re.start()+len(end_title_re.group(2))].strip()
+            a = 1
+        elif re.search(r"^[A-Z][a-z]+ [A-Z][a-z]+", text):
+            ind_dot = text.find(".")
+            if ind_dot != -1:
+                begin_title = text[ind_dot+1:].strip()
+                pos_end = begin_title.find(".")
+                title = begin_title[:pos_end]
             a = 1
         else:
             end_title_re = re.search(r"\w{3,}\.|(\",)", text)
             if end_title_re:
                 title = text[:end_title_re.start()].strip()
+
             a = 1
     except Exception as err:
         print("get_title -> {0}".format(err))

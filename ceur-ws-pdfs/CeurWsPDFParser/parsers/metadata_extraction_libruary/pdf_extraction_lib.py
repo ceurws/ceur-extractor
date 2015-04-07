@@ -1,12 +1,11 @@
 __author__ = 'Alexander'
-import os, codecs
+import os, codecs, sys
 
-
-path_to_pdf2txt = r"C:\Python33\Scripts\pdf2txt.py"
+path_to_pdf2txt = os.path.join(os.path.dirname(sys.executable), 'Scripts', 'pdf2txt.py')
 
 def main():
     f_name = os.path.join("pdfs", "Vol-571-paper1.pdf")
-
+    f_name = r"D:\JOB\SemanticChallenge\pdf_task\pdfs\Vol-315-paper1.pdf"
     files = get_html_and_txt(f_name)
 
 
