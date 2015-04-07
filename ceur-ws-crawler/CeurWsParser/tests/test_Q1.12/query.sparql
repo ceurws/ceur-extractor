@@ -19,7 +19,7 @@ SELECT ?proc ?name ?proc_first {
     GROUP BY ?proc
   }
   ?proc bibo:presentedAt|bibo:presentedAt/rdfs:seeAlso ?workshop .
-  ?workshop rdfs:label ?name .
+  ?workshop swrc:eventTitle ?name .
   { ?workshop timeline:atDate ?date . }
   UNION
   { ?workshop timeline:beginsAtDateTime ?date . }

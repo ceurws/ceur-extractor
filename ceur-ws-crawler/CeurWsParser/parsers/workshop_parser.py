@@ -394,7 +394,7 @@ class WorkshopRelationsParser(ListParser):
 
     def find_labels(self, term):
         w_a_labels = [
-            label.toPython() for label in self.graph.objects(term, RDFS.label | BIBO.shortTitle)
+            label.toPython() for label in self.graph.objects(term, SWRC.eventTitle | BIBO.shortTitle)
         ]
         return set(w_a_labels + map(self.long_to_short, w_a_labels))
 
