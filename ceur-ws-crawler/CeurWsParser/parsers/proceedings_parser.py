@@ -61,7 +61,7 @@ class ProceedingsSummaryParser(Parser):
                 Literal(proceedings['submission_date'].strftime('%Y-%m-%d'), datatype=XSD.date)))
             for editor in proceedings['editors']:
                 agent = URIRef(config.id['person'] + urllib.quote(editor.encode('utf-8')))
-                triples.append((agent, RDF.type, FOAF.Agent))
+                triples.append((agent, RDF.type, FOAF.Person))
                 triples.append((agent, FOAF.name, Literal(editor, datatype=XSD.string)))
                 triples.append((resource, SWRC.editor, agent))
                 triples.append((resource, FOAF.maker, agent))

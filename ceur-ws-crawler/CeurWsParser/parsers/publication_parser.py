@@ -64,7 +64,7 @@ class PublicationParser(Parser):
                 triples.append((resource, RDF.type, SWC.InvitedPaper))
             for editor in publication['editors']:
                 agent = URIRef(config.id['person'] + urllib.quote(editor.encode('utf-8')))
-                triples.append((agent, RDF.type, FOAF.Agent))
+                triples.append((agent, RDF.type, FOAF.Person))
                 triples.append((agent, FOAF.name, Literal(editor, datatype=XSD.string)))
                 triples.append((resource, DC.creator, agent))
                 triples.append((resource, FOAF.maker, agent))

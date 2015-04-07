@@ -4,3 +4,5 @@ ceur-ws-crawler/CeurWsParser/config.py
 ceur-ws-pdfs/CeurWsPDFParser/config.py
 */**/run
 *.ttl
+/ceur-ws-crawler/reasoner/target/
+.*
