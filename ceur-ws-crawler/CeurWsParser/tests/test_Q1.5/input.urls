@@ -1,0 +1,10 @@
+input_urls = ["http://ceur-ws.org/",
+"http://ceur-ws.org/Vol-1085/",
+"http://ceur-ws.org/Vol-1/",
+"http://ceur-ws.org/Vol-869/",
+"http://ceur-ws.org/Vol-736/",
+"http://ceur-ws.org/Vol-721/",
+"http://ceur-ws.org/Vol-718/",
+"http://ceur-ws.org/Vol-315/",
+"http://ceur-ws.org/Vol-232/",
+]
