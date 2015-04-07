@@ -19,9 +19,8 @@ swrc:Conference		owl:equivalentClass     bibo:Conference, swpo:Conference ;
 
 ## Workshop ##
 swrc:Workshop     	owl:equivalentClass     bibo:Workshop, swpo:Workshop .
-swrc:eventTitle   	owl:equivalentProperty  bibo:title, dcterms:title ;
-			rdfs:subPropertyOf	rdfs:label .
-bibo:shortTitle		rdfs:subPropertyOf	rdfs:label .
+swrc:eventTitle  	rdfs:subPropertyOf	rdfs:label, dcterms:title .
+bibo:shortTitle		rdfs:subPropertyOf	rdfs:label, dcterms:title .
  
 #swrc:edition      	owl:equivalentProperty  bibo:edition, dcterms:hasVersion .
 swc:isSubEventOf	owl:equivalentProperty  swrc:atEvent .
