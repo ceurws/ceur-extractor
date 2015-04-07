@@ -10,7 +10,7 @@ SELECT (STRDT(?search, xsd:string) AS ?search_a) ?proc WHERE {
         "Model Driven Development of Advanced User Interfaces"
     }
     ?workshop a bibo:Workshop;
-            rdfs:label ?label .
+            swrc:eventTitle ?label .
     ?proc a swrc:Proceedings ;
         bibo:presentedAt ?workshop .
     FILTER(strStarts(?label, ?search)) .
