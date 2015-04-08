@@ -2,7 +2,7 @@
 __author__ = 'Alexander'
 import os, codecs, sys
 
-path_to_pdf2txt = os.path.join("{0} {1}".format(sys.executable,os.path.dirname(sys.executable)), 'Scripts', 'pdf2txt.py')
+path_to_pdf2txt = os.path.join("{0} {1}".format(sys.executable,os.path.dirname(__file__)), 'pdf2txt.py')
 
 def main():
     f_name = os.path.join("pdfs", "Vol-571-paper1.pdf")
