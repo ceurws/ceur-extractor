@@ -15,8 +15,12 @@ from rdflib.plugins.stores.sparqlstore import SPARQLStore
 import config
 from base import Parser, find_university_in_dbpedia, create_proceedings_uri, create_publication_uri, clean_string
 from pdf_parser_lib_mock import PDFParserLibMock
-from namespaces import SWRC, DBPEDIAOWL 
+from namespaces import SWRC, DBPEDIAOWL, BIBO 
 from rdflib.namespace import RDF, RDFS, FOAF, DCTERMS, DC, XSD
+
+import pdf_extraction_lib as pdf_convert
+from metadata_extraction_lib import PDFmetadataExtractionLib
+
 
 class PDFParser(Parser):
     def __init__(self, grab, task, graph, spider=None):
@@ -52,12 +56,33 @@ class PDFParser(Parser):
                     organization = URIRef(config.id['affiliation'] + urllib.quote(author["organization"]["title"].encode('utf-8')))
                     triples.append((agent, SWRC.affiliation, organization))
                     triples.append((organization, RDF.type, FOAF.Organization))
+                    triples.append((organization, BIBO.name, Literal(author["organization"]["title"], datatype=XSD.string)))
+
                     # organization country
+                    if "country" in author["organization"]:
+                        country = URIRef(config.id['country'] + urllib.quote(author["organization"]["country"].encode('utf-8')))
+                        triples.append((organization, DBPEDIAOWL.country, country))
+                        triples.append((country, FOAF.name, Literal(author["organization"]["country"], datatype=XSD.string)))
+                        triples.append((country, RDF.type, DBPEDIAOWL.Country))
  
                 # cited works
-                # grants and projects
-                # ontologies
-       
+        for cited_work in self.data['cited_works']:
+                cw = URIRef(config.id['cited_work'] + urllib.quote(cited_work["title"].encode('utf-8')))
+                triples.append((cw, RDF.type, BIBO.Document))
+                triples.append((cw, BIBO.title, Literal(cited_work["title"], datatype=XSD.string)))
+                if "doi" in cited_work:
+                    triples.append((cw, BIBO.doi, Literal(cited_work["doi"], datatype=XSD.string)))
+                if "year" in cited_work:
+                    triples.append((cw, BIBO.created, Literal(cited_work["year"], datatype=XSD.string)))
+                if "journal" in cited_work:
+                    journal = URIRef(config.id['journal'] + urllib.quote(cited_work["journal"].encode('utf-8')))
+                    triples.append((cw, BIBO.isPartOf, journal))
+                    triples.append((journal, RDF.type, BIBO.Journal))
+                    triples.append((journal, BIBO.title, Literal(cited_work["journal"], datatype=XSD.string)))
+            
+                    
+        # grants and projects
+        # ontologies
         self.write_triples(triples)
 
     def parse_template_1(self):
@@ -72,7 +97,7 @@ class PDFParser(Parser):
             try:
                 self.grab.response.save(self.data['file_location'])
 
-                parser_lib = PDFParserLibMock(self.data['file_location'])
+                parser_lib = PDFmetadataExtractionLib(self.data['file_location'],pdf_convert.get_html_and_txt)
                 self.data['title'] = parser_lib.getPaperTitle()
                 self.data['authors'] = parser_lib.getAuthors()
                 self.data['cited_works'] = parser_lib.getCitedWorks()
