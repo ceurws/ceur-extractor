@@ -1,3 +1,4 @@
+# -*- coding: utf-8 -*-
 __author__ = 'Alexander'
 
 import os, re, codecs, sys
@@ -7,9 +8,9 @@ if sys.version[0] == '3':
     unichr = chr
     unicode = str
 def main():
-    test_dir = False
+    test_dir = True
     if test_dir:
-        input_dir = r"D:\JOB\SemanticChallenge\pdf_task\pdfs"
+        input_dir = r"C:\ITMO\itmove\papers\semPub\pdf_task\pdfs"
 
         files = [elem for elem in os.listdir(input_dir)]
 
