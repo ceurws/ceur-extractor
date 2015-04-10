@@ -1,0 +1,10 @@
+SELECT DISTINCT ?funding_agency_iri ?funding_agency_name  WHERE {
+    VALUES ?paper {
+        <http://ceur-ws.org/Vol-1123/#paper5>
+        <http://ceur-ws.org/Vol-1155/#paper-04>
+    } .
+    ?funding_agency_iri arpfo:funds ?paper .
+    ?funding_agency_iri rdf:type foaf:Organization .
+    ?funding_agency_iri bibo:name ?funding_agency_name .
+}
+

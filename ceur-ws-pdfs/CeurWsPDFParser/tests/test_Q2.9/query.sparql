@@ -1,0 +1,9 @@
+SELECT DISTINCT ?ontology_iri ?ontology_name  WHERE {
+    VALUES ?paper {
+        <http://ceur-ws.org/Vol-571/#paper4>
+        <http://ceur-ws.org/Vol-315/#paper6>
+    } .
+    ?paper bibo:reviewOf ?ontology_iri .
+    ?ontology_iri rdf:type owl:Ontology .
+    ?ontology_iri rdfs:label ?ontology_name .
+}

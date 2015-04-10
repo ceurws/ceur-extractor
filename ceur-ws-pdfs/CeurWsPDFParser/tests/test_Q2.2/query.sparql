@@ -1,0 +1,12 @@
+SELECT ?paper_iri ?title {
+    VALUES ?workshop {
+        <http://ceur-ws.org/Vol-315/>
+    }
+    
+    ?paper_iri dcterms:partOf ?workshop .
+    ?author_iri foaf:made ?paper_iri .
+    ?paper_iri bibo:title ?title .
+    ?author_iri swrc:affiliation ?org_iri .
+    ?org_iri dbpedia:country ?country_iri .
+    ?country_iri foaf:name "Germany" .
+    }
