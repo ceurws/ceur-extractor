@@ -14,6 +14,14 @@ id = dict(
     workshop = sparqlstore['uri_base'] + "workshop/",
     conference=sparqlstore['uri_base'] + "conference/"
     affiliation = sparqlstore['uri_base'] + "affiliation/",
+    cited_work = sparqlstore['uri_base'] + "cited_work/",
+    country = sparqlstore['uri_base'] + "country/",
+    journal = sparqlstore['uri_base'] + "journal/",
+    grant = sparqlstore['uri_base'] + "grant/",
+    agency = sparqlstore['uri_base'] + "agency/",
+    project = sparqlstore['uri_base'] + "project/",
+    ontology = sparqlstore['uri_base'] + "ontology/",
+
 )
 
 DEBUG = False
