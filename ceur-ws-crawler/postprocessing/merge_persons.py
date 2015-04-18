@@ -1,5 +1,3 @@
-import numpy as np
-import pandas as pd
 import urllib2
 import rdflib
 import json
