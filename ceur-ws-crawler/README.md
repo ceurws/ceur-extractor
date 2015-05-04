@@ -34,9 +34,3 @@ The dataset will be in ``rdfdb.ttl`` file.
 #Queries
 
 SPARQL queries created for the Task 1 as translation of [the human readable queries](http://challenges.2014.eswc-conferences.org/index.php/SemPub/Task1#Queries) to SPARQL queries using our [data model](https://github.com/ailabitmo/sempubchallenge2014-task1/wiki/Data-representation). The queries are in [the wiki](https://github.com/ailabitmo/sempubchallenge2014-task1/wiki/Queries).
- 
-#Contacts
-
-Maxim Kolchin (kolchinmax@gmail.com)
-
-Fedor Kozlov (kozlovfedor@gmail.com)
