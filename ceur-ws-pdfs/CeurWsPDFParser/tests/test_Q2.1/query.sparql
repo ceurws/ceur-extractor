@@ -1,12 +1,13 @@
 SELECT ?resource_iri  ?affiliation_fullname  ?author_iri  ?author_fullname WHERE {
     VALUES ?paper {
-        <http://ceur-ws.org/Vol-1215#paper-01>
-        <http://ceur-ws.org/Vol-1302#invited>
-        <http://ceur-ws.org/Vol-1302#paper2>
+        <http://ceur-ws.org/Vol-1215/#paper-01>
+        <http://ceur-ws.org/Vol-1302/#invited>
+        <http://ceur-ws.org/Vol-1302/#paper2>
     }
 
-    ?author_iri foaf:made ?paper
-    ?author_iri foaf:name ?author_fullname
-    ?author_iri swrc:affiliation ?resource_iri
+    ?author_iri foaf:made ?paper .
+    ?author_iri foaf:name ?author_fullname .
+    ?author_iri swrc:affiliation ?resource_iri .
     ?resource_iri bibo:name ?affiliation_fullname
 }
+

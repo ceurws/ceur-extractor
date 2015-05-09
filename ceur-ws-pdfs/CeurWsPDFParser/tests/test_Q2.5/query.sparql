@@ -1,11 +1,11 @@
 SELECT ?resource_iri ?doi ?paper_title ?journal_title {
  VALUES ?paper_iri {
-    <http://ceur-ws.org/Vol-1302#paper7>
+    <http://ceur-ws.org/Vol-1302/#paper7>
  }
  ?paper_iri bibo:cites ?resource_iri .
+
  ?resource_iri  bibo:isPartOf ?journal_iri .
  ?resource_iri  bibo:title ?paper_title .
  ?journal_iri  bibo:title ?journal_title
  OPTIONAL {?resource_iri  bibo:doi ?doi}
-
 }
