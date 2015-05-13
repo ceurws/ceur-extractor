@@ -5,6 +5,10 @@ The following Python modules need to installed:
  - RDFLib 4.1.2 (https://github.com/RDFLib/rdflib),
  - Grab 0.4.13 (http://grablib.org/),
 
+The JDK 1.8 nedd to installed
+
+Stanford Parser is used. Download http://nlp.stanford.edu/software/lex-parser.shtml#Download and put jars into parsers dir.
+
 ##Configuration
 All configuration settings should be in ``config.py`` file which should be created from ``config.py.example`` by renaming it.
 

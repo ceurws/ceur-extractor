@@ -5,9 +5,11 @@ import os, re
 import PdfExtractionLib as pdf
 import standfordParserWorker
 def test_metadata():
-    f_name = os.path.join(os.path.dirname(__file__), "pdfs", "Vol-315-paper6.pdf")
 
-    dict_data = pdf.get_html_and_txt(f_name,  update_files = False)#, add_files = False, update_files = True)
+
+    f_name = os.path.join(os.path.dirname(__file__), "pdfs", "Vol-315-paper3.pdf")
+
+    dict_data = pdf.get_html_and_txt(f_name,  update_files = True)#, add_files = False, update_files = True)
 
     result_data = get_information(dict_data)
 
@@ -15,9 +17,9 @@ def test_metadata():
 def get_information(dict_data):
     def prettify_bibliography(input_array):
         try:
-            res_bibliography = []
+            outpt = u""
             if not len(input_array):
-                return res_bibliography
+                return outpt
             #input_data = u"{newline}".join([pdf.html2text(el[1]) for el in input_array[0]])
             input_data = u"{newline}".join([re.sub(r"<.*?>", " ", el[1].replace("<br>", "{newline}")) for el in input_array[0]])
             temp_array = get_bibliography_array(input_data)
@@ -40,8 +42,8 @@ def get_information(dict_data):
 
         article_parts = get_article_parts(dict_data.get("html", ""))
         outpt_data["header_part"] = u"\n".join([el[1] for el in article_parts[0]])
-        outpt_data["abstract_part"] = article_parts[1]
-        outpt_data["acknowledgement"] = u"\n".join([el[1] for el in article_parts[2]])
+        outpt_data["abstract_part"] =  re.sub(r"<.*?>", "", article_parts[1])
+        outpt_data["acknowledgement"] = re.sub(r"<.*?>", "", article_parts[2])
         outpt_data["bibliography"] = prettify_bibliography(article_parts[3])
         title, authors = get_inf_from_header(article_parts[0])
         related_ontos, new_ontologies_out = get_inf_about_ontologies(article_parts[1])
@@ -1047,7 +1049,7 @@ def get_references_divs(pages, ind_page_references_begin, references_begin_tag):
         return []
 def get_acknowledgements_references(pages):
     try:
-        acknowledgemnts = []
+        acknowledgemnts = u""
         references = []
 
         if len(pages) < 3:
@@ -1120,7 +1122,7 @@ def get_acknowledgements_references(pages):
 def get_header_and_abstract(pages):
     try:
         header = []
-        abstract = []
+        abstract = ""
         if not len(pages):
             return header, abstract
         divs_all = get_all_tag_with_name("div", pages[0])
@@ -1131,6 +1133,7 @@ def get_header_and_abstract(pages):
 
         header = [el for el in divs_all[:ind_begin_abstract]]
         abstract = divs_all[ind_begin_abstract][1]
+        a = 1
     except Exception as err:
         print("get_header_and_abstract -> {0}".format(err))
     finally:

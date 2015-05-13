@@ -57,11 +57,11 @@ def get_html_and_txt(input_filename, add_files = False, update_files = True):
 
         if not os.path.exists(temp_txt_file):
             print(txt_command)
-            os.system(txt_command)
+            #os.system(txt_command)
         else:
              if update_files:
                 print(txt_command)
-                os.system(txt_command)
+                #os.system(txt_command)
         if not os.path.exists(temp_html_file):
             print(html_command)
             os.system(html_command)
@@ -70,9 +70,9 @@ def get_html_and_txt(input_filename, add_files = False, update_files = True):
                 print(html_command)
                 os.system(html_command)
 
-        fh = codecs.open(temp_txt_file, 'rb')
-        out_inf["txt"] = fh.read(os.path.getsize(temp_txt_file)).decode("UTF-8")
-        fh.close()
+        # fh = codecs.open(temp_txt_file, 'rb')
+        # out_inf["txt"] = fh.read(os.path.getsize(temp_txt_file)).decode("UTF-8")
+        # fh.close()
 
         fh = codecs.open(temp_html_file, 'rb')
         out_inf["html"] = fh.read(os.path.getsize(temp_html_file)).decode("UTF-8")

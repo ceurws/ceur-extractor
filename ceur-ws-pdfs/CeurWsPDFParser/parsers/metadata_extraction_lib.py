@@ -6,9 +6,23 @@ import os, re, codecs
 import PdfExtractionLib as pdf
 import metadata_information
 def main_test():
-    f_name = os.path.join(os.path.dirname(__file__), "pdfs", "Vol-315-paper1.pdf")
 
-    pdf_parser = PDFmetadataExtractionLib(f_name, pdf.get_html_and_txt)
+    debug = False
+    if debug:
+        f_name = os.path.join(os.path.dirname(__file__), "pdfs", "Vol-315-paper1.pdf")
+
+        pdf_parser = PDFmetadataExtractionLib(f_name, pdf.get_html_and_txt)
+
+        pdf_parser.make_damp()
+    else:
+        input_dir = r"D:\yandex_disk\Job\ITMO\semantic_git_distributiv\pdfs"
+        for filename in os.listdir(input_dir):
+            if not filename.endswith(".pdf"):
+                continue
+            fullname = os.path.join(input_dir, filename)
+            print(filename)
+            pdf_parser = PDFmetadataExtractionLib(fullname, pdf.get_html_and_txt)
+            pdf_parser.make_damp()
 
 class PDFmetadataExtractionLib():
     def __init__(self, file_path, pdf_converter_func):
@@ -101,20 +115,38 @@ class PDFmetadataExtractionLib():
 
             wh = codecs.open(out_name, 'w', encoding="UTF-8")
             wh.write("Header_part\n")
-            wh.write(u"{0}".format(self.get_header_part()))
+            wh.write(u"{0}\n".format(self.get_header_part()))
             wh.write("\n***")
             wh.write("Title\n")
-            wh.write(u"{0}".format(self.getPaperTitle()))
+            wh.write(u"{0}\n".format(self.getPaperTitle()))
             wh.write("\n***")
             wh.write("Authors and affilations\n")
             for cur_author in self.getAuthors():
                 wh.write("author -> '{0}'\n".format(cur_author.get("full_name", "")))
                 wh.write("organisation -> '{0}'\n".format(cur_author.get("organisation", "")))
                 #{"full_name":"Full name 1", "organization": { "title":"Org title 1", "country":"Country 1"}})
+            wh.write("\n***\n")
+            wh.write("Abstract\n")
+            wh.write(u"{0}\n".format(self.get_abstract_part()))
             wh.write("\n***")
+            wh.write("\nRelated Ontologies\n")
+            wh.write(u"{0}\n".format(self.getRelatedOntologies()))
+            wh.write("\n***")
+            wh.write("\nNew Ontologies\n")
+            wh.write(u"{0}\n".format(self.getNewOntologies()))
+            wh.write("\n***\n")
+            wh.write("Acknowledgements part\n")
+            wh.write(u"{0}\n".format(self.get_acknowledgement_part()))
             wh.write("Funding agencies\n")
-            wh.write(u"{0}".format(self.getFundingAgencies()))
-            wh.write(self.getPaperTitle())
+            wh.write(u"{0}\n".format(self.getFundingAgencies()))
+            wh.write("EU grants\n")
+            wh.write(u"{0}\n".format(self.getEUProjects()))
+            wh.write("Bibliography part\n")
+            wh.write(u"{0}\n".format(self.get_biblioraphy_part()))
+            wh.write("Cited works\n")
+            for cur_bibliography_item in self.getCitedWorks():
+                wh.write(u"{0}\n".format(cur_bibliography_item))
+
         except Exception as err:
             print("make_damp")
         finally:
