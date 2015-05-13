@@ -95,7 +95,7 @@ def html2text(html_text):
     #убрал таким образом комментарии
     text = re.sub(r"<[Pp][^>]*?(?!</)>", "\n\n", unicode(html_text))
     #text = re.sub(r"<[Hh]\d+[^>]*?(?!</)>", "\n\n", unicode(html_text))
-    text = re.sub(r"<[^>]*?>", "", text)
+    text = re.sub(r"<[^>]*?>", " ", text)
     text = re.sub(r"&#(\d+);", lambda m: unichr(int(m.group(1))), text)
     text = re.sub(r"&([A-Za-z]+);", char_from_entity, text)
     text = re.sub(r"\n(?:[ \xA0\t]+\n)+", "\n", text)

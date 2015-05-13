@@ -35,7 +35,7 @@ class PDFParser(Parser):
         triples = []
 
         proceedings = URIRef(self.data['workshop'])
-        resource = create_publication_uri(self.data['workshop'], self.data['file_name'])
+        resource = create_publication_uri(self.data['workshop'], self.data['file_name'][:-4])
         
         triples.append((proceedings, DCTERMS.hasPart, resource))
         triples.append((resource, RDF.type, FOAF.Document))

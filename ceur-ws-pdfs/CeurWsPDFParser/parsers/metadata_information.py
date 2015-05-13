@@ -3,15 +3,29 @@
 __author__ = 'Alexander'
 import os, re
 import PdfExtractionLib as pdf
+import standfordParserWorker
 def test_metadata():
-    f_name = os.path.join(os.path.dirname(__file__), "pdfs", "Vol-315-paper1.pdf")
+    f_name = os.path.join(os.path.dirname(__file__), "pdfs", "Vol-315-paper6.pdf")
 
-    dict_data = pdf.get_html_and_txt(f_name, update_files = False)
+    dict_data = pdf.get_html_and_txt(f_name,  update_files = False)#, add_files = False, update_files = True)
 
     result_data = get_information(dict_data)
 
     a = 1
 def get_information(dict_data):
+    def prettify_bibliography(input_array):
+        try:
+            res_bibliography = []
+            if not len(input_array):
+                return res_bibliography
+            #input_data = u"{newline}".join([pdf.html2text(el[1]) for el in input_array[0]])
+            input_data = u"{newline}".join([re.sub(r"<.*?>", " ", el[1].replace("<br>", "{newline}")) for el in input_array[0]])
+            temp_array = get_bibliography_array(input_data)
+            outpt = u"\n".join(temp_array)
+        except Exception as err:
+            print("prettify_bibliography -> {0}".format(err))
+        finally:
+            return outpt
     try:
         outpt_data = {
             # "title": None,
@@ -25,27 +39,334 @@ def get_information(dict_data):
         }
 
         article_parts = get_article_parts(dict_data.get("html", ""))
-
+        outpt_data["header_part"] = u"\n".join([el[1] for el in article_parts[0]])
+        outpt_data["abstract_part"] = article_parts[1]
+        outpt_data["acknowledgement"] = u"\n".join([el[1] for el in article_parts[2]])
+        outpt_data["bibliography"] = prettify_bibliography(article_parts[3])
         title, authors = get_inf_from_header(article_parts[0])
-
+        related_ontos, new_ontologies_out = get_inf_about_ontologies(article_parts[1])
         cited_works = get_cited_works(article_parts[3])
-
+        grants, funding_agencies, eu_projects = get_grants_and_finding_agencies(article_parts[2])
         if title != "":
             outpt_data["title"] = title
         if len(authors):
             outpt_data["authors"] = authors
         if len(cited_works):
             outpt_data["cited_works"] = cited_works
+        if len(grants):
+            outpt_data["grants"] = grants
+        if len(funding_agencies):
+            outpt_data["funding_agencies"] = funding_agencies
+        if len(eu_projects):
+            outpt_data["EU_projects"] = eu_projects
+        if len(related_ontos):
+            outpt_data["related_ontologies"] = related_ontos
+        if len(new_ontologies_out):
+            outpt_data["new_ontologies"] = new_ontologies_out
     except Exception as err:
         print("get_information -> {0}".format(err))
     finally:
         return outpt_data
+def get_inf_about_ontologies(abstract):
+    try:
+        related_ontos = []
+        new_ontologies_out = []
+
+        stop_words = standfordParserWorker.read_stop_words()
+        existontos = standfordParserWorker.read_existonto()
+
+        text = re.sub(r"\s+", " ", re.sub(r"<.*?>", " ", abstract, re.U), re.U)
+        text = re.sub(r"\(cid\:\d+\)", "", text)
+        text = text.replace(r"\\", '"')
+
+        if not len(text):
+            return related_ontos
+
+        tokens = [el.strip() for el in text.split(" ") if el.strip() != ""]
+        if tokens[0].lower().find('abstract') != -1:
+            tokens.pop(0)
+            if not tokens[0][0].isalpha():
+                tokens.pop(0)
+
+        sentences = []
+        cur_sentence = []
+        for i in range(len(tokens)):
+            #prev_word = else_tokens[i-1]
+            cur_word = tokens[i]
+            next_word = ""
+            if i+1 < len(tokens):
+                next_word = tokens[i+1]
+
+            if len(cur_sentence) and cur_sentence[-1].endswith("-") and cur_sentence[-1] != '-':
+                cur_sentence[-1] = u"{0}{1}".format(cur_sentence[-1][:-1], cur_word)
+            else:
+                cur_sentence.append(cur_word)
+            if re.search(r"[.?!]$", cur_word, re.U) and cur_word.find("U.S.") == -1:
+                if next_word == "":
+                    if len(cur_sentence):
+                        sentences.append(cur_sentence)
+                        sentences[-1][-1] = sentences[-1][-1][:-1]
+                        cur_sentence = []
+                elif next_word[0].isupper():
+                    if len(cur_sentence):
+                        sentences.append(cur_sentence)
+                        sentences[-1][-1] = sentences[-1][-1][:-1]
+                        cur_sentence = []
+        template_ontologies = [
+            r"introduc\w+\b",
+            r"propos\w+\b",
+            r"present\b",
+            r"propos\w+\b",
+            r"describ\w+\b",
+        ]
+
+        for ind_sentence in range(len(sentences)):
+            inds = [el for el in sentences[ind_sentence] if el.lower().find("ontolog") != -1]
+            if not len(inds):
+                continue
+            ind_template = False
+
+            for template in template_ontologies:
+                inds = [el for el in sentences[ind_sentence] if re.search(template, el, re.UNICODE)]
+                if len(inds):
+                    ind_template = True
+
+            if ind_template:
+                #В парсер
+                dependencies = standfordParserWorker.get_dependencies(u" ".join(sentences[ind_sentence]))
+                for first_word, first_ind, second_word, second_ind in dependencies:
+                    first_inds = [el for el in template_ontologies if re.search(el, first_word)]
+                    sec_inds =  [el for el in template_ontologies if re.search(el, second_word)]
+                    if len(first_inds) and second_word.lower().find("ontolog")!=-1:
+                        ontology = get_ontology(second_ind, sentences[ind_sentence])
+                        ontology = check_ontologies(ontology, stop_words)
+                        exist_ontologies, new_ontologies = new_or_not_ontol(ontology, existontos)
+
+                        if len(exist_ontologies):
+                            related_ontos.extend(exist_ontologies)
+                        if len(new_ontologies_out):
+                            new_ontologies_out.append(new_ontologies_out)
+                    if len(sec_inds) and first_word.lower().lower().find("ontolog") != -1:
+                        ontology = get_ontology(second_ind, sentences[ind_sentence])
+                        ontology = check_ontologies(ontology, stop_words)
+                        exist_ontologies, new_ontologies = new_or_not_ontol(ontology, existontos)
+
+                        if len(exist_ontologies):
+                            related_ontos.extend(exist_ontologies)
+                        if len(new_ontologies_out):
+                            new_ontologies_out.append(new_ontologies_out)
+            else:
+                cur_sentence = u" ".join(sentences[ind_sentence])
+                for ontol in existontos:
+                    if cur_sentence.lower().find(ontol.lower()) != -1:
+                        related_ontos.append(ontol)
+    except Exception as err:
+        print("get_inf_about_ontologies -> {0}".format(err))
+    finally:
+        return related_ontos, new_ontologies_out
+def new_or_not_ontol(ontology, existontos):
+    try:
+        exist_ontol = []
+        new_ontol = []
+
+        for ontol_cand in ontology:
+            if ontol_cand in existontos:
+                exist_ontol.append(ontol_cand)
+            else:
+                new_ontol.append(ontol_cand)
+    except Exception as err:
+        print("new_or_not_ontol -> {0}".format(err))
+    finally:
+        return exist_ontol, new_ontol
+def check_ontologies(ontologies, stop_words):
+    try:
+        outpt = []
+
+        for ontol_cand in ontologies:
+            if not ontol_cand in stop_words:
+                outpt.append(ontol_cand)
+    except Exception as err:
+        print("check_ontologies -> {0}".format(err))
+    finally:
+        return outpt
+def get_ontology(ind, sentences):
+    try:
+        outpt = []
+        left_ontol = []
+        for i in range(ind-1, ind-1-4, -1):
+            if i < 0:
+                break
+            cur_word = sentences[i]
+            if not re.search(r"[A-Z]", cur_word, re.U):
+                break
+            left_ontol.insert(0, cur_word)
+        if len(left_ontol):
+            left_ontol.append(sentences[i])
+            outpt.append(u" ".join(left_ontol))
+        right_ontol = []
+        for i in range(ind+1, ind+1+4):
+            if i >= len(sentences):
+                break
+            cur_word = sentences[i]
+            if not re.search(r"[A-Z]", cur_word, re.U):
+                break
+            right_ontol.append(cur_word)
+        if len(right_ontol):
+            right_ontol.insert(0, sentences[i])
+            outpt.append(u" ".join(right_ontol))
+    except Exception as err:
+        print("get_ontology -> {0}".format(err))
+    finally:
+        return outpt
+def get_grants_and_finding_agencies(acknowledgents):
+    try:
+        grants = []
+        eu_projects = []
+        funding_agencies = []
+
+        acknowledgents = re.sub(r"<.*?>", " ", acknowledgents, re.U).strip()
+        acknowledgents = re.sub(r"pro +ject", "project", acknowledgents, re.U).strip()
+        acknowledgents = re.sub(r"\(.*?\)", "", acknowledgents, re.U).strip()
+        acknowledgents = re.sub(r" +([.!?])$", r"\1", acknowledgents, re.U)
+
+
+        else_tokens = []
+        for cur_token in [el for el in re.split(r" +", acknowledgents, re.U) if el.strip() != ""]:
+            cur_work_token = re.sub(r"[.?!]$", "", cur_token, re.U).strip()
+
+            if len(cur_work_token) and re.search(r"\d{3,}", cur_work_token) and cur_work_token[-1].isdigit():
+                if re.search(r"[.?!]$", cur_token, re.U) and len(else_tokens):
+                    else_tokens[-1] += cur_token[-1]
+                grants.append({"id": cur_work_token})
+            else:
+                else_tokens.append(cur_token)
+
+        sentences = []
+        cur_sentence = []
+        for i in range(len(else_tokens)):
+            #prev_word = else_tokens[i-1]
+            cur_word = else_tokens[i]
+            next_word = ""
+            if i+1 < len(else_tokens):
+                next_word = else_tokens[i+1]
+
+            cur_sentence.append(cur_word)
+            if re.search(r"[.?!]$", cur_word, re.U) and cur_word.find("U.S.") == -1:
+                if next_word == "":
+                    if len(cur_sentence):
+                        sentences.append(cur_sentence)
+                        sentences[-1][-1] = sentences[-1][-1][:-1]
+                        cur_sentence = []
+                elif next_word[0].isupper():
+                    if len(cur_sentence):
+                        sentences.append(cur_sentence)
+                        sentences[-1][-1] = sentences[-1][-1][:-1]
+                        cur_sentence = []
+
+        templates = [
+            [r"by", r"under"],
+            [r"funding from", r"under"],
+            [r"by", r"in"],
+            [r"by", r"in"],
+            [r"by", r"within"],
+            [r"by", r"funded"],
+        ]
+
+        next_templates = [
+            r"by",
+            r"funding",
+            r"funding from",
+        ]
+
+        eu_templates = [
+            r"\bEU\-funded\b",
+            r"\bEU FP\d+\b",
+            r"\bFP\d +European\b",
+            r"\bEuropean +Union\b",
+            r"\bFP\d+\b",
+            r"\bEU +\d+th +Framework +Program\b",
+            r"\bEuropean\b +\bUnion\b +\d+th\b +\bFramework\b +\bProgram\b"
+        ]
+
+        for i in range(len(sentences)):
+            cur_sentence = sentences[i]
+
+            flag = False
+
+            for template in templates:
+                first_search = template[0]
+                sec_search = template[1]
+
+                try:
+                    ind_begin = cur_sentence.index(first_search)
+                    end_template = cur_sentence.index(sec_search, ind_begin)
+                    funding_agencies.append(u" ".join([el for el in cur_sentence[ind_begin+1:end_template] if el.strip() != "the"]))
+
+                    cur_sentence = cur_sentence[:ind_begin] + cur_sentence[end_template+1:]
+                    a = 1
+                except Exception as err:
+                    a = 1
+            cur_sentence_new = u" ".join(cur_sentence)
+
+            for second_template in next_templates:
+                ind_template = cur_sentence_new.find(second_template)
+
+                if ind_template != -1:
+                    end_part = cur_sentence_new[ind_template+len(second_template):].strip()
+                    if end_part.startswith("the "):
+                        end_part = end_part[len("the "):].strip()
+                    if len(end_part) and end_part[0].isupper():
+                        for eu_template in eu_templates:
+                            eu_re = re.search(eu_template, end_part, re.U)
+                            if eu_re:
+                                eu_grant = end_part[eu_re.start():]
+                                if not eu_grant in eu_projects:
+                                    eu_projects.append(eu_grant)
+                            else:
+                                if not end_part in funding_agencies:
+                                    funding_agencies.append(end_part)
+                    cur_sentence_new = cur_sentence_new[:ind_template].strip()
+            for eu_template in eu_templates:
+                eu_re = re.search(eu_template, cur_sentence_new, re.U)
+
+                if eu_re:
+                    before_part = cur_sentence_new[:eu_re.start()].strip().split(" ")
+                    after_part = cur_sentence_new[eu_re.start():].strip().split(" ")
+
+                    before_eu = []
+                    for ind_before_eu in range(len(before_part)-1, len(before_part)-1-4, -1):
+                        if ind_before_eu < 0:
+                            break
+                        if before_part[ind_before_eu][0].isupper() or re.search(r"(and)|(of)|(the)", before_part[ind_before_eu]):
+                            before_eu.insert(0, before_part[ind_before_eu])
+                    if len(before_eu):
+                        before_eu = u" ".join(before_eu)
+                        if not before_eu in eu_projects:
+                            eu_projects.append(u" ".join(before_eu))
+
+                    after_eu = []
+                    for ind_after_eu in range(4):
+                        if ind_after_eu == len(after_part):
+                            break
+                        if after_part[ind_after_eu][0].isupper() or re.search(r"(and)|(of)|(the)", after_part[ind_after_eu]):
+                            after_eu.append(after_part[ind_before_eu])
+                    if len(after_eu):
+                        after_eu  = u" ".join(after_eu)
+                        if not after_eu in eu_projects:
+                            eu_projects.append()
+        a = 1
+    except Exception as err:
+        print("get_grants_and_finding_agencies -> {0}".format(err))
+    finally:
+        return grants, funding_agencies, eu_projects
 def get_cited_works(input_data):
     try:
         res_bibliography = []
         if not len(input_data):
             return res_bibliography
-        input_data = u"{newline}".join([pdf.html2text(el[1]) for el in input_data[0]])
+        #input_data = u"{newline}".join([pdf.html2text(el[1]) for el in input_data[0]])
+        input_data = u"{newline}".join([re.sub(r"<.*?>", " ", el[1].replace("<br>", "{newline}")) for el in input_data[0]])
+        #re.sub(r"<.*?>", " ", el[1].replace("<br>", "{newline}"))
         temp_array = get_bibliography_array(input_data)
         outpt = u"\n".join(temp_array)
         res_bibliography = get_bibliography(outpt)
