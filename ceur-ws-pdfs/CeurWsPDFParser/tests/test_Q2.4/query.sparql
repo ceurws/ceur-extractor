@@ -6,5 +6,5 @@ SELECT DISTINCT ?resource_iri ?title ?publication_year WHERE {
     ?resource_iri bibo:title ?title .
     ?resource_iri bibo:created ?publication_year
     OPTIONAL { ?resource_iri bibo:doi ?doi }
-    FILTER (?publication_year > 2012)
+    FILTER (?publication_year > '2012')
 }

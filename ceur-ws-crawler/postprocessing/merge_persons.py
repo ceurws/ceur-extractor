@@ -1,5 +1,8 @@
 import urllib2
 import rdflib
+from rdflib import URIRef
+from rdflib.namespace import OWL
+from itertools import permutations
 import json
 from fuzzywuzzy import fuzz
 
@@ -68,8 +71,23 @@ def find_duplicates(persons):
                     dups.append(uri)
                     duplicates.append(dups)
     finally:
-        with open('ceur_duplicates.json', 'w') as f:
+        with open('merged_persons.json', 'w') as f:
             json.dump(duplicates, f)
+        return duplicates
+
+
+def create_sameas(duplicates):
+    """
+
+    :type duplicates: list of list of str
+    :rtype: rdflib.Graph
+    """
+    g = rdflib.Graph()
+    for group in duplicates:
+        perm = permutations(group, 2)
+        for p in perm:
+            g.add((URIRef(p[0]), OWL.sameAs, URIRef(p[1])))
+    return g
 
 
 print 'Downloading data'
@@ -77,4 +95,9 @@ graph = create_graph(urllib2.urlopen(dataset_url))
 print 'Transforming data'
 data = get_names_as_dict(graph)
 print 'Looking for duplicates'
-find_duplicates(data)
+duplicates = find_duplicates(data)
+print 'Saving duplicates as OWL:sameAs'
+persons_sameas = create_sameas(duplicates)
+with open('persons_sameas.ttl', 'w') as f:
+    f.write(persons_sameas.serialize(format='turtle'))
+
