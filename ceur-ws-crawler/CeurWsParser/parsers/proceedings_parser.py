@@ -84,16 +84,44 @@ class ProceedingsRelationsParser(Parser):
             proceedings_url = tr[i].find('.//td[last()]//a[@href]').get('href')
             if len(config.input_urls) == 1:
                 self.spider.add_task(Task('initial', url=proceedings_url))
-            if proceedings_url in config.input_urls or len(config.input_urls) == 1:
-                related = []
+            elif proceedings_url in config.input_urls:
+                rel_numbers = []
+                rel_urls = []
                 for a in tr[i + 1].findall(".//td[1]//a[@href]"):
                     if len(a.get('href')) > 1:
-                        related.append(a.get('href')[5:])
-                proceedings = {
-                    'volume_number': ProceedingsRelationsParser.extract_volume_number(proceedings_url),
-                    'related': related
-                }
-                self.data['proceedings'].append(proceedings)
+                        rel_number = a.get('href')[5:]
+                        rel_numbers.append(rel_number)
+                        rel_urls.append("http://ceur-ws.org/Vol-%s/" % rel_number)
+                self.record(proceedings_url, rel_numbers)
+                self.launch_initial_tasks(rel_urls)
+            else:
+                include = False
+                rel_numbers = []
+                rel_urls = []
+                for a in tr[i + 1].findall(".//td[1]//a[@href]"):
+                    if len(a.get('href')) > 1:
+                        rel_number = a.get('href')[5:]
+                        rel_url = "http://ceur-ws.org/Vol-%s/" % rel_number
+                        if rel_url in config.input_urls:
+                            include = True
+                        rel_numbers.append(rel_number)
+                        rel_urls.append(rel_url)
+                if include:
+                    self.record(proceedings_url, rel_numbers)
+                    self.launch_initial_tasks(rel_urls + [proceedings_url])
+
+    def record(self, proceedings_url, related):
+        proceedings = {
+            'volume_number': ProceedingsRelationsParser.extract_volume_number(proceedings_url),
+            'related': related
+        }
+        self.data['proceedings'].append(proceedings)
+
+    def launch_initial_tasks(self, urls):
+        for url in urls:
+            if not url in config.input_urls:
+                self.spider.add_task(Task('initial', url=url))
+                config.input_urls.append(url)
 
     def write(self):
         triples = []
@@ -101,11 +129,6 @@ class ProceedingsRelationsParser(Parser):
             if len(proceedings['related']) > 0:
                 resource = create_proceedings_uri(proceedings['volume_number'])
                 for related in proceedings['related']:
-                    related_url = "http://ceur-ws.org/Vol-%s/" % related
-                    if len(config.input_urls) > 1 and related_url not in config.input_urls:
-                        config.input_urls.append(related_url)
-                    #     # self.spider.add_task(Task('initial', url=related_url))
-
                     related_resource = create_proceedings_uri(related)
                     triples.append((resource, RDFS.seeAlso, related_resource))
         self.write_triples(triples)
