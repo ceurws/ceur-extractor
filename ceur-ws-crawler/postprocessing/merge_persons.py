@@ -5,9 +5,7 @@ from rdflib.namespace import OWL
 from itertools import permutations
 import json
 from fuzzywuzzy import fuzz
-
-
-dataset_url = 'https://github.com/ailabitmo/ceur-ws-lod/releases/download/ceur-ws-crawler-v1.0.0/task-1-dataset.ttl'
+from sys import argv
 
 
 def create_graph(data):
@@ -16,7 +14,7 @@ def create_graph(data):
     :rtype: rdflib.Graph
     """
     g = rdflib.Graph()
-    g.parse(data, format='n3')
+    g.parse(data, format='turtle')
     return g
 
 
@@ -56,13 +54,15 @@ def find_duplicates(persons):
     :type persons: dict
     :rtype: list of list of str
     """
+    count = 0
     duplicates = []
     try:
         while len(persons) > 0:
             dups = []
             uri, names = persons.popitem()
             try:
-                print uri
+                count += 1
+                print count, uri
                 for u, n in persons.iteritems():
                     if compare_names(names, n):
                         dups.append(u)
@@ -72,13 +72,12 @@ def find_duplicates(persons):
                     duplicates.append(dups)
     finally:
         with open('merged_persons.json', 'w') as f:
-            json.dump(duplicates, f)
+            json.dump(duplicates, f, indent=4, separators=(',', ': '))
         return duplicates
 
 
 def create_sameas(duplicates):
     """
-
     :type duplicates: list of list of str
     :rtype: rdflib.Graph
     """
@@ -90,8 +89,9 @@ def create_sameas(duplicates):
     return g
 
 
-print 'Downloading data'
-graph = create_graph(urllib2.urlopen(dataset_url))
+with open(argv[1], 'r') as f:
+    print 'Loading data form file: ' + argv[1]
+    graph = create_graph(f)
 print 'Transforming data'
 data = get_names_as_dict(graph)
 print 'Looking for duplicates'
