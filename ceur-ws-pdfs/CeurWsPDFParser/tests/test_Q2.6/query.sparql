@@ -1,10 +1,14 @@
+PREFIX bibo: <http://purl.org/ontology/bibo/>
+PREFIX foaf: <http://xmlns.com/foaf/0.1/>
+PREFIX swrc: <http://swrc.ontoware.org/ontology#>
+PREFIX ns1: <http://vocab.ox.ac.uk/projectfunding#>
 SELECT DISTINCT ?resource_iri ?grant_identifier ?grant_name WHERE {
     VALUES ?paper {
         <http://ceur-ws.org/Vol-315/#paper1>
         <http://ceur-ws.org/Vol-1302/#paper5>
     } .
-    ?resource_iri arpfo:funds ?paper .
-    ?resource_iri rdf:type arpfo:Grant .
-    ?resource_iri bibo:name ?grant_name .
-    OPTIONAL { ?resource_iri arpfo:grantNumber ?grant_identifier }
+  ?resource_iri ns1:funds ?paper .
+  ?resource_iri rdf:type ns1:Grant 
+  OPTIONAL { ?resource_iri bibo:name ?grant_name }
+  OPTIONAL { ?resource_iri ns1:grantNumber ?grant_identifier }
 }

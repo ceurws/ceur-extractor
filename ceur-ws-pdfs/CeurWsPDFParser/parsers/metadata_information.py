@@ -1,15 +1,24 @@
 #! /usr/bin/env python
 # -*- coding: utf-8 -*-
 __author__ = 'Alexander'
-import os, re
+
 import PdfExtractionLib as pdf
 import standfordParserWorker
+import os,re,codecs, re, sys
+
+if sys.version[0] == '3':
+    import html.entities as htmlentitydefs
+    unicode = str
+    unichr = chr
+else:
+    import htmlentitydefs
+
 def test_metadata():
 
 
-    f_name = os.path.join(os.path.dirname(__file__), "pdfs", "Vol-315-paper3.pdf")
+    f_name = os.path.join(os.path.dirname(__file__), "pdfs", "Vol-315-paper1.pdf")
 
-    dict_data = pdf.get_html_and_txt(f_name,  update_files = True)#, add_files = False, update_files = True)
+    dict_data = pdf.get_html_and_txt(f_name,  update_files = True, add_files = False)
 
     result_data = get_information(dict_data)
 
@@ -42,8 +51,8 @@ def get_information(dict_data):
 
         article_parts = get_article_parts(dict_data.get("html", ""))
         outpt_data["header_part"] = u"\n".join([el[1] for el in article_parts[0]])
-        outpt_data["abstract_part"] =  re.sub(r"<.*?>", "", article_parts[1])
-        outpt_data["acknowledgement"] = re.sub(r"<.*?>", "", article_parts[2])
+        outpt_data["abstract_part"] =  get_normal_text(re.sub(r"<.*?>", "", article_parts[1]))
+        outpt_data["acknowledgement"] = get_normal_text(re.sub(r"<.*?>", "", article_parts[2]))
         outpt_data["bibliography"] = prettify_bibliography(article_parts[3])
         title, authors = get_inf_from_header(article_parts[0])
         related_ontos, new_ontologies_out = get_inf_about_ontologies(article_parts[1])
@@ -302,9 +311,16 @@ def get_grants_and_finding_agencies(acknowledgents):
                 try:
                     ind_begin = cur_sentence.index(first_search)
                     end_template = cur_sentence.index(sec_search, ind_begin)
-                    funding_agencies.append(u" ".join([el for el in cur_sentence[ind_begin+1:end_template] if el.strip() != "the"]))
+                    cur_flag = True
+                    current_candidatus = u" ".join([el for el in cur_sentence[ind_begin+1:end_template] if el.strip() != "the"])
+                    for eu_template in eu_templates:
+                        if re.search(eu_template, end_part, re.U):
+                            cur_flag = False
+                            break
+                    if cur_flag:
+                        funding_agencies.append(current_candidatus)
 
-                    cur_sentence = cur_sentence[:ind_begin] + cur_sentence[end_template+1:]
+                        cur_sentence = cur_sentence[:ind_begin] + cur_sentence[end_template+1:]
                     a = 1
                 except Exception as err:
                     a = 1
@@ -326,7 +342,13 @@ def get_grants_and_finding_agencies(acknowledgents):
                                     eu_projects.append(eu_grant)
                             else:
                                 if not end_part in funding_agencies:
-                                    funding_agencies.append(end_part)
+                                    cur_flag = True
+                                    for eu_template in eu_templates:
+                                        if re.search(eu_template, end_part, re.U):
+                                            cur_flag = False
+                                            break
+                                    if cur_flag:
+                                        funding_agencies.append(end_part)
                     cur_sentence_new = cur_sentence_new[:ind_template].strip()
             for eu_template in eu_templates:
                 eu_re = re.search(eu_template, cur_sentence_new, re.U)
@@ -361,13 +383,24 @@ def get_grants_and_finding_agencies(acknowledgents):
         print("get_grants_and_finding_agencies -> {0}".format(err))
     finally:
         return grants, funding_agencies, eu_projects
+def get_normal_text(input_text):
+    def char_from_entity(match):
+        code = htmlentitydefs.name2codepoint.get(match.group(1), 0xFFFD)
+        return unichr(code)
+    try:
+        input_text = re.sub(r"&#(\d+);", lambda m: unichr(int(m.group(1))), input_text)
+        input_text = re.sub(r"&([A-Za-z]+);", char_from_entity, input_text)
+    except Exception as err:
+        print("get_normal_text -> {0}".format(err))
+    finally:
+        return input_text
 def get_cited_works(input_data):
     try:
         res_bibliography = []
         if not len(input_data):
             return res_bibliography
         #input_data = u"{newline}".join([pdf.html2text(el[1]) for el in input_data[0]])
-        input_data = u"{newline}".join([re.sub(r"<.*?>", " ", el[1].replace("<br>", "{newline}")) for el in input_data[0]])
+        input_data = u"{newline}".join([get_normal_text(re.sub(r"<.*?>", " ", el[1].replace("<br>", "{newline}"))) for el in input_data[0]])
         #re.sub(r"<.*?>", " ", el[1].replace("<br>", "{newline}"))
         temp_array = get_bibliography_array(input_data)
         outpt = u"\n".join(temp_array)
@@ -709,13 +742,18 @@ def get_inf_from_header(divs):
             for j in range(len(spans)):
                 cur_span, cur_whole_span = spans[j]
 
+                flag_next_digit = False
+                if j+1 < len(spans):
+                    cur_next_span, cur_next_whole_span = spans[j+1]
+                    if re.search(r"^\d+", re.sub(r"<.*?>", "", cur_next_whole_span, re.U).strip()):
+                        flag_next_digit = True
                 params = get_params(cur_whole_span)
                 cur_whole_text = re.sub(r"<.*?>", "", cur_whole_span, re.U).strip()
                 if flag:
                     font_name = params.get("font-family", "")
                     flag = False
                 else:
-                    if font_name != params.get("font-family", ""):
+                    if font_name != params.get("font-family", "") or flag_next_digit:
                         ind_end_title_div = cur_whole_div.index(cur_whole_span)
                         pseudo_div = cur_whole_div[:ind_end_title_div]+r"</div>"
                         title_tags.append([get_params(cur_div), pseudo_div])
@@ -739,7 +777,7 @@ def get_inf_from_header(divs):
         elif re.sub(r"<.*?>", "", else_tags[0][1]).find(u'\u2217') != -1:
             else_tags.pop(0)
         text_first_div = [el for el in re.findall(r"\b[a-z]+\b", re.sub(r"<.*?>", "", else_tags[0][1]))]
-        if len(text_first_div):
+        if len(text_first_div) and not re.search(r"[A-Za-z]\d", re.sub(r"<.*?>", "", else_tags[0][1], re.U), re.U):
             title += " " + re.sub(r"<.*?>", "", else_tags[0][1])
             if len(else_tags):
                 else_tags.pop(0)
@@ -842,13 +880,13 @@ def get_author_affilation_country_from_normal_teplate(divs):
                 if c_af in affil_hash:
                     c_affil = affil_hash[c_af]
 
-                    c_affil = affilation_by_skobka(c_affil)
+                    c_affil = affilation_by_skobka(c_affil.strip())
 
-                    outpt.append({"full_name": k})
+                    outpt.append({"full_name": re.sub(r"\band\b", "", k, re.UNICODE).replace(",", "").strip()})
                     if c_affil[0] != "":
                         outpt[-1]["organization"] = {}
                         outpt[-1]["organization"]["title"] = c_affil[0]
-                    if c_affil[0] != "":
+                    if c_affil[1] != "":
                         if not "organization" in outpt[-1]:
                             outpt[-1]["organization"] = {}
                         outpt[-1]["organization"]["country"] = c_affil[1]
@@ -971,10 +1009,10 @@ def get_index_of_div_references(cur_page):
     try:
         div_references = None
         text = re.sub(r"<.*?>", "", cur_page)
-        if re.search(r"\bFig(ure)?\b", text):
+        if re.search(r"^\bFig(ure)?\b", text):
             return None
         divs_all = get_all_tag_with_name("div", cur_page)
-
+        a = 1
         for i in range(len(divs_all)):
             tag, whole_tag = divs_all[i]
             spans = get_all_tag_with_name("span", whole_tag)
@@ -987,7 +1025,7 @@ def get_index_of_div_references(cur_page):
                 splt = [el for el in re.split("\\W*", text) if not el.isdigit() and el.strip() != ""]
 
                 if len(splt) == 1:
-                    if splt[0].lower() == 'bibliography' or splt[0].lower() == 'references':
+                    if splt[0].lower() == 'bibliography' or splt[0].lower().find( 'references' ) != -1:
                         whole_span_tag = "".join([el[1] for el in spans[:j+1]])
                         return [whole_tag, whole_span_tag]
         return None

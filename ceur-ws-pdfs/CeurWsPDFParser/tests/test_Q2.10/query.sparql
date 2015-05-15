@@ -1,3 +1,5 @@
+PREFIX bibo: <http://purl.org/ontology/bibo/>
+PREFIX owl: <http://www.w3.org/2002/07/owl#>
 SELECT DISTINCT ?resource_iri ?ontology_name  WHERE {
     VALUES ?paper {
         <http://ceur-ws.org/Vol-1302/#paper1>

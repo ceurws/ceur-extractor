@@ -7,7 +7,7 @@ import PdfExtractionLib as pdf
 import metadata_information
 def main_test():
 
-    debug = False
+    debug = True
     if debug:
         f_name = os.path.join(os.path.dirname(__file__), "pdfs", "Vol-315-paper1.pdf")
 
@@ -122,8 +122,8 @@ class PDFmetadataExtractionLib():
             wh.write("\n***")
             wh.write("Authors and affilations\n")
             for cur_author in self.getAuthors():
-                wh.write("author -> '{0}'\n".format(cur_author.get("full_name", "")))
-                wh.write("organisation -> '{0}'\n".format(cur_author.get("organisation", "")))
+                wh.write(u"author -> '{0}'\n".format(cur_author.get("full_name", "")))
+                wh.write(u"organisation -> '{0}'\n".format(cur_author.get("organization", "")))
                 #{"full_name":"Full name 1", "organization": { "title":"Org title 1", "country":"Country 1"}})
             wh.write("\n***\n")
             wh.write("Abstract\n")
@@ -139,6 +139,8 @@ class PDFmetadataExtractionLib():
             wh.write(u"{0}\n".format(self.get_acknowledgement_part()))
             wh.write("Funding agencies\n")
             wh.write(u"{0}\n".format(self.getFundingAgencies()))
+            wh.write("Grants\n")
+            wh.write(u"{0}\n".format(self.getGrants()))
             wh.write("EU grants\n")
             wh.write(u"{0}\n".format(self.getEUProjects()))
             wh.write("Bibliography part\n")
@@ -148,7 +150,8 @@ class PDFmetadataExtractionLib():
                 wh.write(u"{0}\n".format(cur_bibliography_item))
 
         except Exception as err:
-            print("make_damp")
+            print("make_damp -> {0}".format(err))
+
         finally:
             if wh is not None:
                 wh.close()

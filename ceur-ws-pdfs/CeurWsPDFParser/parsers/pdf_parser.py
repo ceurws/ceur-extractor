@@ -53,41 +53,50 @@ class PDFParser(Parser):
                 triples.append((agent, FOAF.made, resource))
                 
                 if "organization" in author:
-                    organization = URIRef(config.id['affiliation'] + urllib.quote(author["organization"]["title"].encode('utf-8')))
-                    triples.append((agent, SWRC.affiliation, organization))
-                    triples.append((organization, RDF.type, FOAF.Organization))
-                    triples.append((organization, BIBO.name, Literal(author["organization"]["title"], datatype=XSD.string)))
+                    if "title" in author["organization"]:
+                        organization = URIRef(config.id['affiliation'] + urllib.quote(author["organization"]["title"].encode('utf-8')))
+                        triples.append((agent, SWRC.affiliation, organization))
+                        triples.append((organization, RDF.type, FOAF.Organization))
+                        triples.append((organization, BIBO.name, Literal(author["organization"]["title"], datatype=XSD.string)))
 
                     # organization country
-                    if "country" in author["organization"]:
-                        country = URIRef(config.id['country'] + urllib.quote(author["organization"]["country"].encode('utf-8')))
-                        triples.append((organization, DBPEDIAOWL.country, country))
-                        triples.append((country, FOAF.name, Literal(author["organization"]["country"], datatype=XSD.string)))
-                        triples.append((country, RDF.type, DBPEDIAOWL.Country))
+                        if "country" in author["organization"]:
+                            country = URIRef(config.id['country'] + urllib.quote(author["organization"]["country"].encode('utf-8')))
+                            triples.append((organization, DBPEDIAOWL.country, country))
+                            triples.append((country, FOAF.name, Literal(author["organization"]["country"], datatype=XSD.string)))
+                            triples.append((country, RDF.type, DBPEDIAOWL.Country))
  
                 # cited works
         for cited_work in self.data['cited_works']:
-                cw = URIRef(config.id['cited_work'] + urllib.quote(cited_work["title"].encode('utf-8')))
-                triples.append((cw, RDF.type, BIBO.Document))
-                triples.append((resource, BIBO.cites, cw))                
-                triples.append((cw, BIBO.title, Literal(cited_work["title"], datatype=XSD.string)))
-                if "doi" in cited_work:
-                    triples.append((cw, BIBO.doi, Literal(cited_work["doi"], datatype=XSD.string)))
-                if "year" in cited_work:
-                    triples.append((cw, BIBO.created, Literal(cited_work["year"], datatype=XSD.string)))
-                if "journal" in cited_work:
-                    journal = URIRef(config.id['journal'] + urllib.quote(cited_work["journal"].encode('utf-8')))
-                    triples.append((cw, BIBO.isPartOf, journal))
-                    triples.append((journal, RDF.type, BIBO.Journal))
-                    triples.append((journal, BIBO.title, Literal(cited_work["journal"], datatype=XSD.string)))
+                if "title" in cited_work:
+                    cw = URIRef(config.id['cited_work'] + urllib.quote(cited_work["title"].encode('utf-8')))
+                    triples.append((cw, RDF.type, BIBO.Document))
+                    triples.append((resource, BIBO.cites, cw))                
+                    triples.append((cw, BIBO.title, Literal(cited_work["title"], datatype=XSD.string)))
+                    if "doi" in cited_work:
+                        triples.append((cw, BIBO.doi, Literal(cited_work["doi"], datatype=XSD.string)))
+                    if "year" in cited_work:
+                        triples.append((cw, BIBO.created, Literal(cited_work["year"], datatype=XSD.string)))
+                    if "journal" in cited_work:
+                        journal = URIRef(config.id['journal'] + urllib.quote(cited_work["journal"].encode('utf-8')))
+                        triples.append((cw, BIBO.isPartOf, journal))
+                        triples.append((journal, RDF.type, BIBO.Journal))
+                        triples.append((journal, BIBO.title, Literal(cited_work["journal"], datatype=XSD.string)))
             
                     
         # grants and projects
         for grant in self.data['grants']:
-            grt = URIRef(config.id['grant'] + urllib.quote(grant["title"].encode('utf-8')))
+            if "title" in grant:
+                grt = URIRef(config.id['grant'] + urllib.quote(grant["title"].encode('utf-8')))
+            elif "id" in grant: 
+                grt = URIRef(config.id['grant'] + "grantid" + urllib.quote(grant["id"].encode('utf-8')))
+            else:
+                grt = URIRef(config.id['grant'] + "grantunknown")                
+
             triples.append((grt, RDF.type, ARPFO.Grant))
             triples.append((grt, ARPFO.funds, resource))
-            triples.append((grt, BIBO.name, Literal(grant["title"], datatype=XSD.string)))
+            if "title" in grant:
+                triples.append((grt, BIBO.name, Literal(grant["title"], datatype=XSD.string)))
             if "id" in grant:
                 triples.append((grt, ARPFO.grantNumber, Literal(grant["id"], datatype=XSD.string)))
 
