@@ -27,13 +27,18 @@ There are three options:
 
 ###Run
 
-Once you finished with the configuration you need just to execute the following script:
+Once you have finished with the configuration you need to execute the following commands
+(provided that you are in the ``ceur-ws-crawler`` directory):
 
-``
+```bash
 python CeurWsParser/spider.py
-``
+mvn package -f reasoner
+java -jar reasoner/target/reasoner-1.0-SNAPSHOT-jar-with-dependencies.jar rdfdb.ttl alignments.ttl rdfdb_reasoned.ttl
+python postprocessing/merge_persons.py rdfdb_reasoned.ttl
+python postprocessing/merge_ttls.py rdfdb_reasoned.ttl persons_sameas.ttl
+```
 
-The dataset will be in ``rdfdb.ttl`` file.
+The dataset will be in ``sempub2015-task1.ttl`` file.
 
 #Queries
 
