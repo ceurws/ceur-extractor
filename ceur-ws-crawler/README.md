@@ -1,11 +1,15 @@
 #How to configure and run the parser
 
-##Required modules:
-The following Python modules need to installed:
+##Prerequisites
+The following Python modules need to be installed:
  - RDFLib 4.1.2 (https://github.com/RDFLib/rdflib),
  - PDFMiner 20140328 (http://www.unixuser.org/~euske/python/pdfminer/),
  - Grab 0.4.13 (http://grablib.org/),
- - PyPDF2 1.23 (https://github.com/mstamy2/PyPDF2).
+ - PyPDF2 1.23 (https://github.com/mstamy2/PyPDF2),
+ - FuzzyWuzzy (https://github.com/seatgeek/fuzzywuzzy),
+ - Python-Levenshtein (https://pypi.python.org/pypi/python-Levenshtein)
+
+To start the reasoner you will need Java 1.7 and Maven.
 
 ##Configuration
 All configuration settings should be in ``config.py`` file which should be created from ``config.py.example`` by renaming it.
