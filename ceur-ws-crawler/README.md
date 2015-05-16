@@ -1,11 +1,15 @@
 #How to configure and run the parser
 
-##Required modules:
-The following Python modules need to installed:
+##Prerequisites
+The following Python modules need to be installed:
  - RDFLib 4.1.2 (https://github.com/RDFLib/rdflib),
  - PDFMiner 20140328 (http://www.unixuser.org/~euske/python/pdfminer/),
  - Grab 0.4.13 (http://grablib.org/),
- - PyPDF2 1.23 (https://github.com/mstamy2/PyPDF2).
+ - PyPDF2 1.23 (https://github.com/mstamy2/PyPDF2),
+ - FuzzyWuzzy (https://github.com/seatgeek/fuzzywuzzy),
+ - Python-Levenshtein (https://pypi.python.org/pypi/python-Levenshtein)
+
+To start the reasoner you will need Java 1.7 and Maven.
 
 ##Configuration
 All configuration settings should be in ``config.py`` file which should be created from ``config.py.example`` by renaming it.
@@ -23,13 +27,18 @@ There are three options:
 
 ###Run
 
-Once you finished with the configuration you need just to execute the following script:
+Once you have finished with the configuration you need to execute the following commands
+(provided that you are in the ``ceur-ws-crawler`` directory):
 
-``
+```bash
 python CeurWsParser/spider.py
-``
+mvn package -f reasoner
+java -jar reasoner/target/reasoner-1.0-SNAPSHOT-jar-with-dependencies.jar rdfdb.ttl alignments.ttl rdfdb_reasoned.ttl
+python postprocessing/merge_persons.py rdfdb_reasoned.ttl
+python postprocessing/merge_ttls.py rdfdb_reasoned.ttl persons_sameas.ttl
+```
 
-The dataset will be in ``rdfdb.ttl`` file.
+The dataset will be in ``sempub2015-task1.ttl`` file.
 
 #Queries
 
