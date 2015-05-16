@@ -12,7 +12,7 @@ id = dict(
     proceedings = sparqlstore['uri_base'] + "proceedings/ceur-ws/",
     publication = sparqlstore['uri_base'] + "publication/",
     workshop = sparqlstore['uri_base'] + "workshop/",
-    conference=sparqlstore['uri_base'] + "conference/"
+    conference=sparqlstore['uri_base'] + "conference/",
     affiliation = sparqlstore['uri_base'] + "affiliation/",
     cited_work = sparqlstore['uri_base'] + "cited_work/",
     country = sparqlstore['uri_base'] + "country/",
@@ -21,7 +21,6 @@ id = dict(
     agency = sparqlstore['uri_base'] + "agency/",
     project = sparqlstore['uri_base'] + "project/",
     ontology = sparqlstore['uri_base'] + "ontology/",
-
 )
 
 DEBUG = False
@@ -33,7 +32,8 @@ DEBUG = False
 #Complete dataset
 #input_urls = ["http://ceur-ws.org/"]
 #Training dataset
-input_urls = [
+
+training_urls = [
 "http://ceur-ws.org/Vol-1302/invited.pdf",
 "http://ceur-ws.org/Vol-1302/paper1.pdf",
 "http://ceur-ws.org/Vol-1302/paper2.pdf",
@@ -136,3 +136,91 @@ input_urls = [
 "http://ceur-ws.org/Vol-315/paper7.pdf",
 "http://ceur-ws.org/Vol-315/paper8.pdf"
 ]
+
+
+# Eval dataset
+input_urls = [
+"http://ceur-ws.org/Vol-1301/ontocomodise2014_1.pdf",
+"http://ceur-ws.org/Vol-1301/ontocomodise2014_2.pdf",
+"http://ceur-ws.org/Vol-1301/ontocomodise2014_3.pdf",
+"http://ceur-ws.org/Vol-1301/ontocomodise2014_4.pdf",
+"http://ceur-ws.org/Vol-1301/ontocomodise2014_5.pdf",
+"http://ceur-ws.org/Vol-1301/ontocomodise2014_6.pdf",
+"http://ceur-ws.org/Vol-1301/ontocomodise2014_7.pdf",
+"http://ceur-ws.org/Vol-1301/ontocomodise2014_8.pdf",
+"http://ceur-ws.org/Vol-1301/ontocomodise2014_9.pdf",
+"http://ceur-ws.org/Vol-1301/ontocomodise2014_10.pdf",
+"http://ceur-ws.org/Vol-1184/ldow2014_paper_01.pdf",
+"http://ceur-ws.org/Vol-1184/ldow2014_paper_02.pdf",
+"http://ceur-ws.org/Vol-1184/ldow2014_paper_03.pdf",
+"http://ceur-ws.org/Vol-1184/ldow2014_paper_04.pdf",
+"http://ceur-ws.org/Vol-1184/ldow2014_paper_05.pdf",
+"http://ceur-ws.org/Vol-1184/ldow2014_paper_06.pdf",
+"http://ceur-ws.org/Vol-1184/ldow2014_paper_07.pdf",
+"http://ceur-ws.org/Vol-1184/ldow2014_paper_08.pdf",
+"http://ceur-ws.org/Vol-1184/ldow2014_paper_09.pdf",
+"http://ceur-ws.org/Vol-1184/ldow2014_paper_10.pdf",
+"http://ceur-ws.org/Vol-1184/ldow2014_paper_11.pdf",
+"http://ceur-ws.org/Vol-1184/ldow2014_paper_12.pdf",
+"http://ceur-ws.org/Vol-1184/ldow2014_paper_13.pdf",
+"http://ceur-ws.org/Vol-1116/paper1.pdf",
+"http://ceur-ws.org/Vol-1116/paper2.pdf",
+"http://ceur-ws.org/Vol-1116/paper3.pdf",
+"http://ceur-ws.org/Vol-1116/paper4.pdf",
+"http://ceur-ws.org/Vol-1116/paper5.pdf",
+"http://ceur-ws.org/Vol-1116/paper6.pdf",
+"http://ceur-ws.org/Vol-1116/paper7.pdf",
+"http://ceur-ws.org/Vol-1116/paper8.pdf",
+"http://ceur-ws.org/Vol-1044/paper-01.pdf",
+"http://ceur-ws.org/Vol-1044/paper-02.pdf",
+"http://ceur-ws.org/Vol-1044/paper-03.pdf",
+"http://ceur-ws.org/Vol-1044/paper-04.pdf",
+"http://ceur-ws.org/Vol-1044/paper-05.pdf",
+"http://ceur-ws.org/Vol-1044/paper-06.pdf",
+"http://ceur-ws.org/Vol-1044/paper-07.pdf",
+"http://ceur-ws.org/Vol-958/paper1.pdf",
+"http://ceur-ws.org/Vol-958/paper2.pdf",
+"http://ceur-ws.org/Vol-958/paper3.pdf",
+"http://ceur-ws.org/Vol-958/paper4.pdf",
+"http://ceur-ws.org/Vol-958/paper5.pdf",
+"http://ceur-ws.org/Vol-958/paper6.pdf",
+"http://ceur-ws.org/Vol-958/paper7.pdf",
+"http://ceur-ws.org/Vol-958/paper8.pdf",
+"http://ceur-ws.org/Vol-958/paper9.pdf",
+"http://ceur-ws.org/Vol-903/paper-01.pdf",
+"http://ceur-ws.org/Vol-903/paper-02.pdf",
+"http://ceur-ws.org/Vol-903/paper-03.pdf",
+"http://ceur-ws.org/Vol-903/paper-04.pdf",
+"http://ceur-ws.org/Vol-903/paper-05.pdf",
+"http://ceur-ws.org/Vol-903/paper-06.pdf",
+"http://ceur-ws.org/Vol-903/paper-07.pdf",
+"http://ceur-ws.org/Vol-903/paper-08.pdf",
+"http://ceur-ws.org/Vol-856/paper_3.pdf",
+"http://ceur-ws.org/Vol-856/paper_4.pdf",
+"http://ceur-ws.org/Vol-856/paper_5.pdf",
+"http://ceur-ws.org/Vol-856/paper_6.pdf",
+"http://ceur-ws.org/Vol-856/paper_7.pdf",
+"http://ceur-ws.org/Vol-856/paper_8.pdf",
+"http://ceur-ws.org/Vol-778/paper1.pdf",
+"http://ceur-ws.org/Vol-778/paper2.pdf",
+"http://ceur-ws.org/Vol-778/paper3.pdf",
+"http://ceur-ws.org/Vol-778/paper4.pdf",
+"http://ceur-ws.org/Vol-778/paper5.pdf",
+"http://ceur-ws.org/Vol-778/paper6.pdf",
+"http://ceur-ws.org/Vol-778/paper7.pdf",
+"http://ceur-ws.org/Vol-778/paper8.pdf",
+"http://ceur-ws.org/Vol-778/pospaper1.pdf",
+"http://ceur-ws.org/Vol-778/pospaper2.pdf",
+"http://ceur-ws.org/Vol-778/pospaper3.pdf",
+"http://ceur-ws.org/Vol-665/LiuEtAl_COLD2010.pdf",
+"http://ceur-ws.org/Vol-665/NikolovEtAl_COLD2010.pdf",
+"http://ceur-ws.org/Vol-665/NortonEtAl_COLD2010.pdf",
+"http://ceur-ws.org/Vol-665/MillardEtAl_COLD2010.pdf",
+"http://ceur-ws.org/Vol-665/UmbrichEtAl_COLD2010.pdf",
+"http://ceur-ws.org/Vol-665/TroncyEtAl_COLD2010.pdf",
+"http://ceur-ws.org/Vol-665/CorrendoEtAl_COLD2010.pdf",
+"http://ceur-ws.org/Vol-665/IseleEtAl_COLD2010.pdf",
+"http://ceur-ws.org/Vol-665/BizerEtAl_COLD2010.pdf",
+"http://ceur-ws.org/Vol-665/MulwadEtAl_COLD2010.pdf",
+]
+
