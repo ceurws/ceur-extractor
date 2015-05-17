@@ -4,7 +4,8 @@
 The following Python modules need to installed:
  - RDFLib 4.1.2 (https://github.com/RDFLib/rdflib),
  - Grab 0.4.13 (http://grablib.org/),
- - PDFMiner (http://www.unixuser.org/~euske/python/pdfminer/).
+ - PDFMiner 20140328 (http://www.unixuser.org/~euske/python/pdfminer/),
+ - beautifulsoup4 4.3.2 (https://pypi.python.org/pypi/beautifulsoup4).
 
 The JDK 1.8 need to be installed
 
