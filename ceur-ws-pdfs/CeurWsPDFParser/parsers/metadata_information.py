@@ -5,7 +5,7 @@ __author__ = 'Alexander'
 import PdfExtractionLib as pdf
 import standfordParserWorker
 import os,re,codecs, re, sys
-
+import metada_information_soup
 if sys.version[0] == '3':
     import html.entities as htmlentitydefs
     unicode = str
@@ -16,9 +16,9 @@ else:
 def test_metadata():
 
 
-    f_name = os.path.join(os.path.dirname(__file__), "pdfs", "Vol-315-paper1.pdf")
-
-    dict_data = pdf.get_html_and_txt(f_name,  update_files = True, add_files = False)
+    f_name = os.path.join(os.path.dirname(__file__), "pdfs", "Vol-315-paper6.pdf")
+    f_name = r"D:\JOB\SemanticChallenge\pdf_task\MyPDFLib\evaluation_pdfs\Vol-665-MulwadEtAl_COLD2010.pdf"
+    dict_data = pdf.get_html_and_txt(f_name,  update_files = True, add_files = True)
 
     result_data = get_information(dict_data)
 
@@ -30,7 +30,7 @@ def get_information(dict_data):
             if not len(input_array):
                 return outpt
             #input_data = u"{newline}".join([pdf.html2text(el[1]) for el in input_array[0]])
-            input_data = u"{newline}".join([re.sub(r"<.*?>", " ", el[1].replace("<br>", "{newline}")) for el in input_array[0]])
+            input_data = u"{newline}".join([re.sub(r"<.*?>", " ", el[1].replace("<br>", "{newline}")) for el in input_array[0]]).strip()
             temp_array = get_bibliography_array(input_data)
             outpt = u"\n".join(temp_array)
         except Exception as err:
@@ -48,15 +48,15 @@ def get_information(dict_data):
             # "new_ontologies": [],
             # "related_ontologies": []
         }
-
-        article_parts = get_article_parts(dict_data.get("html", ""))
+        article_parts = metada_information_soup.get_article_parts(dict_data.get("html", ""))
+        article_parts_old = get_article_parts(dict_data.get("html", ""))
         outpt_data["header_part"] = u"\n".join([el[1] for el in article_parts[0]])
         outpt_data["abstract_part"] =  get_normal_text(re.sub(r"<.*?>", "", article_parts[1]))
         outpt_data["acknowledgement"] = get_normal_text(re.sub(r"<.*?>", "", article_parts[2]))
-        outpt_data["bibliography"] = prettify_bibliography(article_parts[3])
+        outpt_data["bibliography"] = prettify_bibliography(article_parts_old[3])
         title, authors = get_inf_from_header(article_parts[0])
         related_ontos, new_ontologies_out = get_inf_about_ontologies(article_parts[1])
-        cited_works = get_cited_works(article_parts[3])
+        cited_works = get_cited_works(article_parts_old[3])
         grants, funding_agencies, eu_projects = get_grants_and_finding_agencies(article_parts[2])
         if title != "":
             outpt_data["title"] = title
@@ -80,6 +80,7 @@ def get_information(dict_data):
         return outpt_data
 def get_inf_about_ontologies(abstract):
     try:
+        abstract = abstract
         related_ontos = []
         new_ontologies_out = []
 
@@ -91,9 +92,9 @@ def get_inf_about_ontologies(abstract):
         text = text.replace(r"\\", '"')
 
         if not len(text):
-            return related_ontos
+            return related_ontos, []
 
-        tokens = [el.strip() for el in text.split(" ") if el.strip() != ""]
+        tokens = [el.replace("(", "").replace(")", "").strip() for el in text.split(" ") if el.strip() != ""]
         if tokens[0].lower().find('abstract') != -1:
             tokens.pop(0)
             if not tokens[0][0].isalpha():
@@ -123,6 +124,8 @@ def get_inf_about_ontologies(abstract):
                         sentences.append(cur_sentence)
                         sentences[-1][-1] = sentences[-1][-1][:-1]
                         cur_sentence = []
+        if len(cur_sentence):
+            sentences.append(cur_sentence)
         template_ontologies = [
             r"introduc\w+\b",
             r"propos\w+\b",
@@ -133,10 +136,18 @@ def get_inf_about_ontologies(abstract):
 
         for ind_sentence in range(len(sentences)):
             inds = [el for el in sentences[ind_sentence] if el.lower().find("ontolog") != -1]
+            n_inds = [el for el in range(len(sentences[ind_sentence])) if sentences[ind_sentence][el].lower().find("ontolog") != -1]
             if not len(inds):
                 continue
             ind_template = False
 
+            #print(u" ".join(sentences[ind_sentence]))
+
+            for cand_ontology in inds:
+                #print(cand_ontology)
+
+                if re.search(r".+Ontology", cand_ontology, re.I):
+                    related_ontos.append(cand_ontology)
             for template in template_ontologies:
                 inds = [el for el in sentences[ind_sentence] if re.search(template, el, re.UNICODE)]
                 if len(inds):
@@ -166,11 +177,32 @@ def get_inf_about_ontologies(abstract):
                             related_ontos.extend(exist_ontologies)
                         if len(new_ontologies_out):
                             new_ontologies_out.append(new_ontologies_out)
+                for cur_ind in n_inds:
+                    ind_before = cur_ind-5
+                    if ind_before < 0:
+                        ind_before = 0
+                    ind_after = cur_ind + 7
+
+
+                    tokens_cands = [el for el in sentences[ind_sentence][ind_before:ind_after] if re.search(r"[A-Z]", el, re.UNICODE)]
+                    #print(tokens_cands)
+                    a = 1
+                    for token_cand in tokens_cands:
+                        #print(token_cand)
+                        #ontology = get_ontology(second_ind, sentences[ind_sentence])
+                        ontology = check_ontologies([token_cand], stop_words)
+                        exist_ontologies, new_ontologies = new_or_not_ontol(ontology, existontos)
+                        related_ontos.extend([el.replace(",", "") for el in ontology])
+                        new_ontologies_out.extend(new_ontologies)
+                        a = 1
+                    a = 1
+
             else:
                 cur_sentence = u" ".join(sentences[ind_sentence])
                 for ontol in existontos:
                     if cur_sentence.lower().find(ontol.lower()) != -1:
                         related_ontos.append(ontol)
+
     except Exception as err:
         print("get_inf_about_ontologies -> {0}".format(err))
     finally:
@@ -182,9 +214,9 @@ def new_or_not_ontol(ontology, existontos):
 
         for ontol_cand in ontology:
             if ontol_cand in existontos:
-                exist_ontol.append(ontol_cand)
+                exist_ontol.append(ontol_cand.replace(",", ""))
             else:
-                new_ontol.append(ontol_cand)
+                new_ontol.append(ontol_cand.replace(",", ""))
     except Exception as err:
         print("new_or_not_ontol -> {0}".format(err))
     finally:
@@ -237,18 +269,29 @@ def get_grants_and_finding_agencies(acknowledgents):
 
         acknowledgents = re.sub(r"<.*?>", " ", acknowledgents, re.U).strip()
         acknowledgents = re.sub(r"pro +ject", "project", acknowledgents, re.U).strip()
-        acknowledgents = re.sub(r"\(.*?\)", "", acknowledgents, re.U).strip()
+        #acknowledgents = re.sub(r"\(.*?\)", "", acknowledgents, re.U).strip()
         acknowledgents = re.sub(r" +([.!?])$", r"\1", acknowledgents, re.U)
-
+        acknowledgents = acknowledgents.replace(u'\u201d', '"')
+        acknowledgents = re.sub(r"\b\- +", r"", acknowledgents, re.UNICODE)
+        #for grant_id, grant_name in re.findall(r"\b\d{3,}\b")
 
         else_tokens = []
-        for cur_token in [el for el in re.split(r" +", acknowledgents, re.U) if el.strip() != ""]:
+        for cur_token in [el for el in acknowledgents.replace("(", "").replace(")", "").split(" ") if el.strip() != ""]:
             cur_work_token = re.sub(r"[.?!]$", "", cur_token, re.U).strip()
 
             if len(cur_work_token) and re.search(r"\d{3,}", cur_work_token) and cur_work_token[-1].isdigit():
                 if re.search(r"[.?!]$", cur_token, re.U) and len(else_tokens):
                     else_tokens[-1] += cur_token[-1]
                 grants.append({"id": cur_work_token})
+                after_grant_id = acknowledgents[acknowledgents.find(cur_work_token)+len(cur_work_token):].strip()
+                if len(after_grant_id) and after_grant_id[0] == '"':
+                    try:
+                        next_quote = after_grant_id.index('"', 1)
+                        grants[-1]['title'] = after_grant_id[1:next_quote]
+                        a = 1
+                    except Exception as err:
+                        a = 1
+                a = 1
             else:
                 else_tokens.append(cur_token)
 
@@ -273,7 +316,9 @@ def get_grants_and_finding_agencies(acknowledgents):
                         sentences.append(cur_sentence)
                         sentences[-1][-1] = sentences[-1][-1][:-1]
                         cur_sentence = []
-
+        if len(cur_sentence):
+            sentences.append(cur_sentence)
+        a = 1
         templates = [
             [r"by", r"under"],
             [r"funding from", r"under"],
@@ -284,23 +329,28 @@ def get_grants_and_finding_agencies(acknowledgents):
         ]
 
         next_templates = [
+            r"by grants from",
             r"by",
             r"funding",
             r"funding from",
+
         ]
 
         eu_templates = [
+            r"EU +project",
             r"\bEU\-funded\b",
             r"\bEU FP\d+\b",
             r"\bFP\d +European\b",
             r"\bEuropean +Union\b",
             r"\bFP\d+\b",
             r"\bEU +\d+th +Framework +Program\b",
-            r"\bEuropean\b +\bUnion\b +\d+th\b +\bFramework\b +\bProgram\b"
+            r"\bEuropean\b +\bUnion\b +\d+th\b +\bFramework\b +\bProgram\b",
         ]
 
         for i in range(len(sentences)):
             cur_sentence = sentences[i]
+            if len(cur_sentence) == 1:
+                continue
 
             flag = False
 
@@ -314,11 +364,12 @@ def get_grants_and_finding_agencies(acknowledgents):
                     cur_flag = True
                     current_candidatus = u" ".join([el for el in cur_sentence[ind_begin+1:end_template] if el.strip() != "the"])
                     for eu_template in eu_templates:
-                        if re.search(eu_template, end_part, re.U):
+                        if re.search(eu_template, current_candidatus, re.U):
                             cur_flag = False
                             break
                     if cur_flag:
-                        funding_agencies.append(current_candidatus)
+                        if not current_candidatus in funding_agencies:
+                            funding_agencies.append(current_candidatus)
 
                         cur_sentence = cur_sentence[:ind_begin] + cur_sentence[end_template+1:]
                     a = 1
@@ -326,10 +377,13 @@ def get_grants_and_finding_agencies(acknowledgents):
                     a = 1
             cur_sentence_new = u" ".join(cur_sentence)
 
+            a = 1
             for second_template in next_templates:
-                ind_template = cur_sentence_new.find(second_template)
+                #ind_template = cur_sentence_new.find(second_template)
+                ind_template = re.search(r"\b{0}\b".format(second_template), cur_sentence_new)
 
-                if ind_template != -1:
+                if ind_template:
+                    ind_template = ind_template.start()
                     end_part = cur_sentence_new[ind_template+len(second_template):].strip()
                     if end_part.startswith("the "):
                         end_part = end_part[len("the "):].strip()
@@ -337,7 +391,7 @@ def get_grants_and_finding_agencies(acknowledgents):
                         for eu_template in eu_templates:
                             eu_re = re.search(eu_template, end_part, re.U)
                             if eu_re:
-                                eu_grant = end_part[eu_re.start():]
+                                eu_grant = end_part[eu_re.end():].strip()
                                 if not eu_grant in eu_projects:
                                     eu_projects.append(eu_grant)
                             else:
@@ -377,11 +431,38 @@ def get_grants_and_finding_agencies(acknowledgents):
                     if len(after_eu):
                         after_eu  = u" ".join(after_eu)
                         if not after_eu in eu_projects:
-                            eu_projects.append()
+                            eu_projects.append(after_eu)
+        a = 1
+
+        temp_eu_projects = []
+        for cur_eu_project in eu_projects:
+            splt_grants = [el for el in re.split(r"projects?,?", cur_eu_project, re.UNICODE) if el.strip() != ""]
+
+            for cur_splt in splt_grants:
+                splt = [re.sub(r"http\:.+$", "", el.strip()).strip() for el in cur_splt.split(" and ") if el.strip() != ""]
+                temp_eu_projects.extend(splt)
+                a = 1
+            a = 1
+        if len(temp_eu_projects):
+            eu_projects = temp_eu_projects
+            a = 1
         a = 1
     except Exception as err:
         print("get_grants_and_finding_agencies -> {0}".format(err))
     finally:
+        if len(funding_agencies):
+            temp_funding = []
+            for cur_fundung in funding_agencies:
+                splt = [el.strip() for el in cur_fundung.split(",") if el.strip() != ""]
+                temp_funding.extend(splt)
+            if len(temp_funding):
+                funding_agencies = temp_funding
+            temp_funding = []
+            for cur_fundung in funding_agencies:
+                splt = [el.strip().replace("the", "") for el in re.split(r" and ", cur_fundung, re.UNICODE) if el.strip() != ""]
+                temp_funding.extend(splt)
+            if len(temp_funding):
+                funding_agencies = temp_funding
         return grants, funding_agencies, eu_projects
 def get_normal_text(input_text):
     def char_from_entity(match):
@@ -400,7 +481,7 @@ def get_cited_works(input_data):
         if not len(input_data):
             return res_bibliography
         #input_data = u"{newline}".join([pdf.html2text(el[1]) for el in input_data[0]])
-        input_data = u"{newline}".join([get_normal_text(re.sub(r"<.*?>", " ", el[1].replace("<br>", "{newline}"))) for el in input_data[0]])
+        input_data = u"\n".join([get_normal_text(re.sub(r"<.*?>", " ", el[1].replace("<br>", " {newline} "))) for el in input_data[0]])
         #re.sub(r"<.*?>", " ", el[1].replace("<br>", "{newline}"))
         temp_array = get_bibliography_array(input_data)
         outpt = u"\n".join(temp_array)
@@ -416,7 +497,7 @@ def get_bibliography(text):
         if text == "":
             return outpt
 
-        bib_items = text.split("\n")
+        bib_items = text.strip().split("\n")
 
         for i in range(len(bib_items)):
             cur_bib_item = re.sub(r"\(cid\:\d+\)", "", bib_items[i], re.U)
@@ -736,11 +817,27 @@ def get_inf_from_header(divs):
         font_size = -1
         for i in range(len(divs)):
             cur_div, cur_whole_div = divs[i]
-
+            #print(re.sub(r"<.*?>", "", cur_whole_div))
             spans = get_all_tag_with_name("span", cur_whole_div)
+
+            div_break = False
 
             for j in range(len(spans)):
                 cur_span, cur_whole_span = spans[j]
+
+
+                #print(re.sub(r"<.*?>", "", cur_whole_span))
+
+                if re.sub(r"<.*?>", "", cur_whole_span).find(", and") != -1:
+                    ind_end_title_div = cur_whole_div.index(cur_whole_span)
+                    pseudo_div = cur_whole_div[:ind_end_title_div]+r"</div>"
+                    title_tags.append([get_params(cur_div), pseudo_div])
+                    else_div_part = cur_whole_div[ind_end_title_div:]
+                    else_tags.append([get_params(cur_div), else_div_part])
+
+                    else_tags.extend([[get_params(el[0]), el[1]] for el in divs[i+1:]])
+                    div_break = True
+                    break
 
                 flag_next_digit = False
                 if j+1 < len(spans):
@@ -751,9 +848,11 @@ def get_inf_from_header(divs):
                 cur_whole_text = re.sub(r"<.*?>", "", cur_whole_span, re.U).strip()
                 if flag:
                     font_name = params.get("font-family", "")
+                    font_size = params.get("font-size", -1)
                     flag = False
                 else:
-                    if font_name != params.get("font-family", "") or flag_next_digit:
+                    size_difference = font_size - params.get("font-size", font_size)
+                    if font_name != params.get("font-family", "") or flag_next_digit and (size_difference and size_difference > 3):
                         ind_end_title_div = cur_whole_div.index(cur_whole_span)
                         pseudo_div = cur_whole_div[:ind_end_title_div]+r"</div>"
                         title_tags.append([get_params(cur_div), pseudo_div])
@@ -766,6 +865,8 @@ def get_inf_from_header(divs):
                         a = 1
             if flag_break:
                 break
+            if div_break:
+                break
             title_tags.append([get_params(cur_div), cur_whole_div])
         a = 1
 
@@ -776,13 +877,15 @@ def get_inf_from_header(divs):
             else_tags.pop(0)
         elif re.sub(r"<.*?>", "", else_tags[0][1]).find(u'\u2217') != -1:
             else_tags.pop(0)
-        text_first_div = [el for el in re.findall(r"\b[a-z]+\b", re.sub(r"<.*?>", "", else_tags[0][1]))]
+        text_first_div = [el for el in re.findall(r"\b[a-z]+\b", re.sub(r"<.*?>", "", else_tags[0][1]), re.UNICODE) if not re.search(r"\band\b", el.lower())]
         if len(text_first_div) and not re.search(r"[A-Za-z]\d", re.sub(r"<.*?>", "", else_tags[0][1], re.U), re.U):
             title += " " + re.sub(r"<.*?>", "", else_tags[0][1])
             if len(else_tags):
                 else_tags.pop(0)
         authors_data = get_authors_data(else_tags)
-        #print(title)
+        if not len(authors_data):
+            print(title)
+            a = 1
         a = 1
     except Exception as err:
         print("get_inf_from_header -> {0}".format(err))
@@ -811,7 +914,6 @@ def get_authors_data(divs):
 
         div0_text = re.sub(r"<.*?>", "", divs[0][1])
 
-
         if re.search(r"\d\,", div0_text):
             authors_data = get_author_affilation_country_from_normal_teplate(divs)
             a = 1
@@ -829,10 +931,26 @@ def get_authors_data(divs):
                     authors_data[-1]["organization"]["country"] = authors_data[0]["organization"]["country"]
             a = 1
         elif div0_text.find(",") != -1:
-            a = 1
+            authors_data = get_author_affilation_country_from_best_teplate(divs)
+            if len(authors_data) > 1:
+                a = 1
+            if len(authors_data):
+                authors = [re.sub(r"\band\b", "", el.strip()) for el in authors_data[0]["full_name"].split(",") if el.strip() != -1]
+                temp_authors_data = []
+                for cur_author in authors:
+                    temp_authors_data.append({"full_name": cur_author})
+                    if "organization" in authors_data[0]:
+                        temp_authors_data[-1]["organization"] = authors_data[0]['organization']
+                    # authors_data[0]["full_name"] = cur_author
+                    # authors_data.append({"full_name": authors[1], "organization": {}})
+                    # authors_data[-1]["organization"]["title"]=authors_data[0]["organization"]["title"]
+                    # if "country" in authors_data[0]["organization"]:
+                    #     authors_data[-1]["organization"]["country"] = authors_data[0]["organization"]["country"]
+                authors_data = temp_authors_data
         else:
             authors_data = get_author_affilation_country_from_best_teplate(divs)
         #print(div0_text)
+
         a = 1
     except Exception as err:
         print("get_authors_data -> {0}".format(err))
@@ -963,6 +1081,8 @@ def get_author_affilation_country_from_best_teplate(divs):
                         cur_mail[-1] = len(cur_data)
                     except Exception as err:
                         print(err)
+                if len(cur_mail) == 1:
+                    cur_mail.append(len(cur_data))
                 j_ind = 1
                 while j_ind < len(cur_mail):
                     part = cur_data[cur_mail[j_ind-1]:cur_mail[j_ind]]

@@ -5,17 +5,18 @@ import os, re, codecs
 
 import PdfExtractionLib as pdf
 import metadata_information
+
 def main_test():
 
     debug = True
     if debug:
-        f_name = os.path.join(os.path.dirname(__file__), "pdfs", "Vol-315-paper1.pdf")
-
+        #f_name = os.path.join(os.path.dirname(__file__), "pdfs", "Vol-1184-ldow2014_paper_03.pdf")
+        f_name = r"D:\JOB\SemanticChallenge\pdf_task\MyPDFLib\evaluation_pdfs\Vol-665-MillardEtAl_COLD2010.pdf"
         pdf_parser = PDFmetadataExtractionLib(f_name, pdf.get_html_and_txt)
 
         pdf_parser.make_damp()
     else:
-        input_dir = r"D:\yandex_disk\Job\ITMO\semantic_git_distributiv\pdfs"
+        input_dir = r"D:\JOB\SemanticChallenge\pdf_task\MyPDFLib\evaluation_pdfs"
         for filename in os.listdir(input_dir):
             if not filename.endswith(".pdf"):
                 continue

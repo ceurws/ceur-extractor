@@ -27,7 +27,7 @@ def main():
     else:
         a = 1
 
-def get_html_and_txt(input_filename, add_files = False, update_files = True):
+def get_html_and_txt(input_filename, add_files = True, update_files = True):
     try:
         out_inf = {
             "html": u"",
@@ -56,18 +56,20 @@ def get_html_and_txt(input_filename, add_files = False, update_files = True):
         html_command =u"{0} -o \"{1}\" \"{2}\"".format(path_to_pdf2txt, temp_html_file, input_filename)
 
         if not os.path.exists(temp_txt_file):
-            print(txt_command)
+            #print(txt_command)
             #os.system(txt_command)
+            a = 1
         else:
              if update_files:
-                print(txt_command)
+                #print(txt_command)
                 #os.system(txt_command)
+                a = 1
         if not os.path.exists(temp_html_file):
-            print(html_command)
+            #print(html_command)
             os.system(html_command)
         else:
             if update_files:
-                print(html_command)
+                #print(html_command)
                 os.system(html_command)
 
         # fh = codecs.open(temp_txt_file, 'rb')

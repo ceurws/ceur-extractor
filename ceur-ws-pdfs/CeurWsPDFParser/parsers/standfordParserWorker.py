@@ -14,7 +14,7 @@ def get_dependencies(test_string):
         if not res:
             print("Impossible to save information to temp file")
             return dependecies
-        command = "parsers/lexparser.sh \"{0}\" > \"{1}\"".format(
+        command = "lexparser \"{0}\" > \"{1}\"".format(
             os.path.join(os.path.dirname(__file__), "temp_standford", "temp_standford.txt"),
             os.path.join(os.path.dirname(__file__), "temp_standford", "standford_out.txt")
         )
