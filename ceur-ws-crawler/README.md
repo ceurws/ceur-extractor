@@ -9,7 +9,8 @@ The following Python modules need to be installed:
  - FuzzyWuzzy (https://github.com/seatgeek/fuzzywuzzy),
  - Python-Levenshtein (https://pypi.python.org/pypi/python-Levenshtein)
 
-You can install them by using the requirements.txt software list with the following command
+You can install them by using the requirements.txt software list with the following command:  
+
 ``sudo pip install -r requirements.txt``
 
 To start the reasoner you will need Java 1.7 and Maven.
