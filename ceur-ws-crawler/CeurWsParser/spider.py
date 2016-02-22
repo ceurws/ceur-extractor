@@ -46,9 +46,9 @@ mappings = dict(
 
 class CEURSpider(Spider):
     def __init__(self):
-        Spider.__init__(self, thread_number = 1)
-        self.setup_grab(timeout = 120)
-        self.repo = rdflib.Graph(store = 'default')
+        Spider.__init__(self, thread_number=1)
+        self.setup_grab(timeout=120)
+        self.repo = rdflib.Graph(store='default')
         self.repo.bind('foaf', FOAF)
         self.repo.bind('swc', SWC)
         self.repo.bind('skos', SKOS)
@@ -60,6 +60,10 @@ class CEURSpider(Spider):
         self.repo.bind('timeline', TIMELINE)
 
     def load_initial_urls(self):
+        """
+        task with lower priority will be processed earlier
+        :return:
+        """
         if self.initial_urls:
             for url in self.initial_urls:
                 if re.match(r'^http://ceur-ws\.org/*$', url, re.I):
@@ -88,8 +92,9 @@ class CEURSpider(Spider):
     def shutdown(self):
         Spider.shutdown(self)
         f = open('rdfdb.ttl', 'w')
-        self.repo.serialize(f, format = 'turtle')
+        self.repo.serialize(f, format='turtle')
         self.repo.close()
+
 
 def main():
     default_logging()

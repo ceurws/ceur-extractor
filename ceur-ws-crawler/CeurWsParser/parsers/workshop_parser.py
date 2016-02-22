@@ -26,7 +26,7 @@ def create_workshop_uri(volume_number):
     return URIRef(config.id['workshop'] + volume_number)
 
 
-def tonumber(string):
+def to_number(string):
     if isinstance(string, basestring):
         if string.lower() == 'first':
             return 1
@@ -217,7 +217,7 @@ class WorkshopSummaryParser(ListParser):
         workshop['url'] = element[0].get('href')
         workshop['time'] = utils.parse_date(title)
         try:
-            workshop['edition'] = tonumber(
+            workshop['edition'] = to_number(
                 rex.rex(title,
                         r'.*Proceedings(\s*of)?(\s*the)?\s*(\d{1,}|first|second|third|forth|fourth|fifth)[thrd]*'
                         r'.*Workshop.*',
@@ -237,7 +237,7 @@ class WorkshopSummaryParser(ListParser):
         workshop['url'] = element[0].get('href')
         workshop['time'] = utils.parse_date(title)
         try:
-            workshop['edition'] = tonumber(
+            workshop['edition'] = to_number(
                 rex.rex(title,
                         r'.*Proceedings(\s*of)?(\s*the)?\s*(\d{1,}|first|second|third|forth|fourth|fifth)[thrd]*'
                         r'.*Workshop.*',

@@ -1,4 +1,5 @@
-import urllib2
+import unicodedata
+from py2casefold import casefold
 import rdflib
 from rdflib import URIRef
 from rdflib.namespace import OWL
@@ -36,6 +37,14 @@ def get_names_as_dict(g):
     return d
 
 
+def normalize_caseless(text):
+    return unicodedata.normalize("NFC", casefold(text))
+
+
+def caseless_equal(left, right):
+    return normalize_caseless(left) == normalize_caseless(right)
+
+
 def compare_names(names1, names2):
     """
     :type p1: list of str
@@ -44,7 +53,7 @@ def compare_names(names1, names2):
     """
     for n1 in names1:
         for n2 in names2:
-            if fuzz.WRatio(n1, n2) > 90:
+            if caseless_equal(n1, n2):
                 return True
     return False
 
@@ -68,7 +77,7 @@ def find_duplicates(persons):
                         dups.append(u)
             finally:
                 if len(dups) > 0:
-                    dups.append(uri)
+                    dups.append(unicodedata.normalize("NFC", casefold(uri)))
                     duplicates.append(dups)
     finally:
         with open('merged_persons.json', 'w') as f:
