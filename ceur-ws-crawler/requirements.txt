@@ -5,5 +5,6 @@ PDFMiner
 Grab >= 0.4.13
 PyPDF2
 FuzzyWuzzy
+py2casefold
 Python-Levenshtein
 #
