@@ -12,11 +12,14 @@ from grab.tools import rex
 from grab.spider import Task
 from rdflib import URIRef, Literal
 from rdflib.namespace import RDF, RDFS, FOAF, DCTERMS, DC, XSD
-from PyPDF2 import PdfFileReader
 
 from base import Parser, create_proceedings_uri, create_publication_uri, clean_string
 from namespaces import SWRC, BIBO, SWC
 import config
+
+# pdf analysis
+import pdfquery
+from pdfminer.layout import LTTextBoxHorizontal
 
 
 class PublicationParser(Parser):
@@ -58,11 +61,12 @@ class PublicationParser(Parser):
             triples.append((resource, RDF.type, FOAF.Document))
             triples.append((resource, DCTERMS.partOf, proceedings))
             triples.append((resource, RDF.type, SWRC.InProceedings))
-            triples.append((resource, SWRC.title, Literal(publication['name'], datatype=XSD.string)))
+            triples.append((resource, SWRC.title, Literal(' '.join(publication['name'].split()), datatype=XSD.string)))
             triples.append((resource, FOAF.homepage, Literal(publication['link'], datatype=XSD.anyURI)))
             if publication['is_invited']:
                 triples.append((resource, RDF.type, SWC.InvitedPaper))
             for editor in publication['editors']:
+                editor = ' '.join(editor.split())
                 agent = URIRef(config.id['person'] + urllib.quote(editor.encode('utf-8')))
                 triples.append((agent, RDF.type, FOAF.Person))
                 triples.append((agent, FOAF.name, Literal(editor, datatype=XSD.string)))
@@ -201,7 +205,7 @@ class PublicationParser(Parser):
                 editors_tag_content = re.sub(r'\s*[,\s]*and\s+', ',', editors_tag_content, flags=re.I | re.S).strip()
 
                 if not editors_tag_content:
-                    #a publication should have non-empty list of authors
+                    # a publication should have non-empty list of authors
                     raise DataNotFound(link)
 
                 for publication_editor_name in editors_tag_content.split(","):
@@ -279,7 +283,32 @@ class PublicationParser(Parser):
         return True
 
 
+def get_page_number(layout):
+    text_content, page_number = [], -1
+    for x in layout:
+        if isinstance(x, LTTextBoxHorizontal):
+            text_content.append(x.get_text().encode('utf-8'))
+    if len(text_content) > 0:
+        if re.match(r'^(\d+)(?:-(\d+))?$', text_content[-1].strip()):  # regex match page number like 1, 1-1
+            page_number = text_content[-1].strip()
+    return page_number
+
+
+def get_page_numbers(infile):
+    pdf = pdfquery.PDFQuery(infile)
+    # get the number of pages
+    number_of_pages, start, end = pdf.doc.catalog['Pages'].resolve()['Count'], -1, -1
+    # get the layout of the first page
+    layout_start, layout_end = pdf.get_layout(0), pdf.get_layout(number_of_pages-1)
+    # get start and end page number by page analysis
+    start = get_page_number(layout_start)
+    end = get_page_number(layout_end)
+    print start, end
+    return number_of_pages, start, end
+
+
 class PublicationNumOfPagesParser(Parser):
+
     def begin_template(self):
         self.data['proceedings_url'] = "http://ceur-ws.org/Vol-%s/" % self.extract_volume_number(self.task.url)
         self.data['file_name'] = self.task.url.rsplit('/')[-1]
@@ -297,9 +326,10 @@ class PublicationNumOfPagesParser(Parser):
         try:
             self.begin_template()
             if self.task.url.endswith('.pdf'):
-                with open(self.data['file_location'], 'rb') as f:
-                    pdf = PdfFileReader(f)
-                    self.data['num_of_pages'] = pdf.getNumPages()
+                count, start, end = get_page_numbers(self.data['file_location'])
+                self.data['num_of_pages'] = count
+                self.data['page_start'] = start
+                self.data['page_end'] = end
             else:
                 raise DataNotFound()
         finally:
@@ -310,5 +340,7 @@ class PublicationNumOfPagesParser(Parser):
         resource = create_publication_uri(self.data['proceedings_url'], self.data['id'])
         if 'num_of_pages' in self.data:
             triples.append((resource, BIBO.numPages, Literal(self.data['num_of_pages'], datatype=XSD.integer)))
+            triples.append((resource, BIBO.pageStart, Literal(self.data['page_start'], datatype=XSD.integer)))
+            triples.append((resource, BIBO.pageEnd, Literal(self.data['page_end'], datatype=XSD.integer)))
 
         self.write_triples(triples)

@@ -11,8 +11,10 @@ from rdflib import URIRef
 def create_proceedings_uri(volume_number):
     return URIRef("http://ceur-ws.org/Vol-%s/" % volume_number)
 
+
 def create_publication_uri(proceedings_url, file_name):
     return URIRef('%s#%s' % (proceedings_url, file_name))
+
 
 def create_conference_uri(conf_acronym, conf_year):
     return URIRef(config.id['conference'] + urllib.quote(conf_acronym + "-" + conf_year))
@@ -41,6 +43,7 @@ def find_university_in_dbpedia(graph, tokens):
         pass
     return []
 
+
 def clean_string(str):
     """
     Removes tabs and newlines from the given string
@@ -48,7 +51,7 @@ def clean_string(str):
     if str is None:
         return None
     else:
-        return str.replace('\r', '').replace('\n','')
+        return str.replace('\r', '').replace('\n', '')
 
 
 class NoTemplateError(Exception):

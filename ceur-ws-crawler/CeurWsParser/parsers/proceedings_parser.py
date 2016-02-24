@@ -14,6 +14,7 @@ import config
 
 XPATH_SUMMARY = '/html/body/table[position()>1]//tr[td]'
 
+
 class ProceedingsSummaryParser(Parser):
     XPATH_SUMMARY_TITLE = './/td[last()]//a[@href]'
 

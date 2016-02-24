@@ -46,7 +46,8 @@ def caseless_equal(left, right):
 
 
 def compare_names(names1, names2):
-    """
+    """ using full name matching to try to not make possibly not same person as same person
+    tutorial here http://stackoverflow.com/questions/319426/how-do-i-do-a-case-insensitive-string-comparison-in-python
     :type p1: list of str
     :type p2: list of str
     :rtype: bool
@@ -74,10 +75,11 @@ def find_duplicates(persons):
                 print count, uri
                 for u, n in persons.iteritems():
                     if compare_names(names, n):
-                        dups.append(u)
+                        print u
+                        dups.append(unicodedata.normalize("NFC", u))
             finally:
                 if len(dups) > 0:
-                    dups.append(unicodedata.normalize("NFC", casefold(uri)))
+                    dups.append(unicodedata.normalize("NFC", uri))
                     duplicates.append(dups)
     finally:
         with open('merged_persons.json', 'w') as f:

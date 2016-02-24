@@ -10,7 +10,7 @@ from rdflib.namespace import FOAF, DC, DCTERMS
 
 from namespaces import BIBO, SWRC, TIMELINE, SWC, SKOS, DBPEDIAOWL
 from parsers import WorkshopSummaryParser, WorkshopPageParser, ProceedingsSummaryParser, \
-    PublicationParser, ProceedingsRelationsParser, PDFParser, WorkshopAcronymParser, WorkshopRelationsParser, \
+    PublicationParser, ProceedingsRelationsParser, WorkshopAcronymParser, WorkshopRelationsParser, \
     JointWorkshopsEditorsParser, PublicationNumOfPagesParser, EditorAffiliationParser, EditorNameExpandParser
 import config
 
@@ -19,7 +19,11 @@ mappings = dict(
     url_mappings={
         r'^http://ceur-ws\.org/*$': 'index',
         r'^http://ceur-ws\.org/Vol-\d+/*$': 'workshop',
-        r'^http://ceur-ws\.org/Vol-\d+/.*\.pdf$': 'publication'
+        r'^http://ceur-ws\.org/Vol-\d+/.*\.pdf$': 'publication',
+        # file .ps .ps.gz already being processed in PublicationParser,
+        # and we did not implement page number analysis for these two type of files yet
+        # r'^http://ceur-ws\.org/Vol-\d+/.*\.ps$': 'publication',
+        # r'^http://ceur-ws\.org/Vol-\d+/.*\.ps.gz$': 'publication'
     },
     parser_mappings={
         'index': [
@@ -38,7 +42,7 @@ mappings = dict(
         ],
         'publication': [
             PublicationNumOfPagesParser,
-            #PDFParser
+            # PDFParser
         ]
     }
 )

@@ -565,6 +565,7 @@ class EditorAffiliationParser(Parser):
 
         self.write_triples(triples)
 
+
 class EditorNameExpandParser(Parser):
     def __init__(self, grab, task, graph, spider=None):
         Parser.__init__(self, grab, task, graph, failonerror=False, spider=spider)
@@ -574,6 +575,7 @@ class EditorNameExpandParser(Parser):
         self.data['proceedings'] = create_proceedings_uri(self.data['volume_number'])
 
         self.editors = []
+
         for editor in self.graph.objects(self.data['proceedings'], FOAF.maker):
             editor_name = self.graph.value(editor, FOAF.name)
             if(editor_name.split(' ', 1)[0].find('.') > 0):
