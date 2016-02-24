@@ -18,6 +18,7 @@ QUERY_FILENAME = 'query.sparql'
 EXPECTED_FILENAME = 'expected.output'
 TESTS_ROOT_DIR = 'tests'
 
+
 def topython(graph, term):
     if isinstance(term, Literal):
         if term.datatype.eq(URIRef("http://www.w3.org/2001/XMLSchema#string")):

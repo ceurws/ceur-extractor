@@ -54,7 +54,7 @@ class ProceedingsSummaryParser(Parser):
         for proceedings in self.data['proceedings_list']:
             resource = URIRef(proceedings['url'])
             triples.append((resource, RDF.type, SWRC.Proceedings))
-            triples.append((resource, SWRC.title, Literal(proceedings['label'], datatype=XSD.string)))
+            triples.append((resource, SWRC.title, Literal(proceedings['label'])))
             triples.append((resource, FOAF.homepage, Literal(proceedings['url'], datatype=XSD.anyURI)))
             triples.append((
                 resource,
@@ -63,7 +63,7 @@ class ProceedingsSummaryParser(Parser):
             for editor in proceedings['editors']:
                 agent = URIRef(config.id['person'] + urllib.quote(editor.encode('utf-8')))
                 triples.append((agent, RDF.type, FOAF.Person))
-                triples.append((agent, FOAF.name, Literal(editor, datatype=XSD.string)))
+                triples.append((agent, FOAF.name, Literal(editor)))
                 triples.append((resource, SWRC.editor, agent))
                 triples.append((resource, FOAF.maker, agent))
                 triples.append((agent, FOAF.made, resource))

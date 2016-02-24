@@ -5,7 +5,6 @@ from rdflib import URIRef
 from rdflib.namespace import OWL
 from itertools import permutations
 import json
-from fuzzywuzzy import fuzz
 from sys import argv
 
 

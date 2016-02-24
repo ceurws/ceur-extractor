@@ -6,6 +6,7 @@ import urllib
 import os
 import tempfile
 import traceback
+import unicodedata
 
 from grab.error import DataNotFound
 from grab.tools import rex
@@ -61,15 +62,16 @@ class PublicationParser(Parser):
             triples.append((resource, RDF.type, FOAF.Document))
             triples.append((resource, DCTERMS.partOf, proceedings))
             triples.append((resource, RDF.type, SWRC.InProceedings))
-            triples.append((resource, SWRC.title, Literal(' '.join(publication['name'].split()), datatype=XSD.string)))
+            triples.append((resource, SWRC.title, Literal(' '.join(publication['name'].split()))))
             triples.append((resource, FOAF.homepage, Literal(publication['link'], datatype=XSD.anyURI)))
             if publication['is_invited']:
                 triples.append((resource, RDF.type, SWC.InvitedPaper))
             for editor in publication['editors']:
-                editor = ' '.join(editor.split())
+                # remove duplicate spaces and use NFC
+                editor = unicodedata.normalize("NFC", unicode(editor))
                 agent = URIRef(config.id['person'] + urllib.quote(editor.encode('utf-8')))
                 triples.append((agent, RDF.type, FOAF.Person))
-                triples.append((agent, FOAF.name, Literal(editor, datatype=XSD.string)))
+                triples.append((agent, FOAF.name, Literal(editor)))
                 triples.append((resource, DC.creator, agent))
                 triples.append((resource, FOAF.maker, agent))
                 triples.append((agent, FOAF.made, resource))
@@ -91,10 +93,10 @@ class PublicationParser(Parser):
                 for publication_editor in publication.findall('span/span[@rel="dcterms:creator"]'):
                     publication_editor_name = publication_editor.find('span[@property="foaf:name"]').text_content()
                     editors.append(clean_string(publication_editor_name).strip())
-                file_name = publication_link.rsplit('.pdf')[0].rsplit('/')[-1]
+                # file_name = publication_link.rsplit('.pdf')[0].rsplit('/')[-1]
                 publication_object = {
                     'name': name,
-                    'file_name': file_name,
+                    'file_name': publication_link,
                     'link': self.task.url + publication_link,
                     'editors': editors
                 }
@@ -143,13 +145,13 @@ class PublicationParser(Parser):
                         editors.append(editor_name)
 
                 if not editors:
-                    #a publication should have non-empty list of authors
+                    # a publication should have non-empty list of authors
                     raise DataNotFound(link)
 
-                file_name = link.rsplit('.pdf')[0].rsplit('/')[-1]
+                # file_name = link.rsplit('.pdf')[0].rsplit('/')[-1]
                 publication_object = {
                     'name': name,
-                    'file_name': file_name,
+                    'file_name': link,
                     'link': link,
                     'editors': editors
                 }
@@ -187,7 +189,7 @@ class PublicationParser(Parser):
             try:
                 name = clean_string(publication.find('a').text_content())
                 if rex.rex(name, r'.*(preface|first\s+pages|author\s+list|foreword).*', re.I, default=None):
-                    #Examples: 180, 186
+                    # Examples: 180, 186
                     continue
                 link = publication.find('a').get('href')
                 editors = []
@@ -213,10 +215,10 @@ class PublicationParser(Parser):
                     if pen:
                         editors.append(pen)
 
-                file_name = link.rsplit('.pdf')[0].rsplit('/')[-1]
+                # file_name = link.rsplit('.pdf')[0].rsplit('/')[-1]
                 publication_object = {
                     'name': name,
-                    'file_name': file_name,
+                    'file_name': link,
                     'link': self.task.url + link,
                     'editors': editors
                 }
@@ -224,7 +226,7 @@ class PublicationParser(Parser):
                 if self.check_for_workshop_paper(publication_object):
                     publications.append(publication_object)
             except Exception as ex:
-                #traceback.print_exc()
+                # traceback.print_exc()
                 raise DataNotFound(ex)
 
         self.data['publications'] = publications
@@ -251,10 +253,49 @@ class PublicationParser(Parser):
 
                     for publication_editor_name in editors_tag_content.split(","):
                         editors.append(clean_string(publication_editor_name.strip()))
-                    file_name = link.rsplit('.pdf')[0].rsplit('/')[-1]
+                    # file_name = link.rsplit('.pdf')[0].rsplit('/')[-1]
                     publication_object = {
                         'name': name,
-                        'file_name': file_name,
+                        'file_name': link,
+                        'link': self.task.url + link,
+                        'editors': editors
+                    }
+                    publication_object['is_invited'] = self.is_invited(publication_object)
+                    if self.check_for_workshop_paper(publication_object):
+                        publications.append(publication_object)
+            except AttributeError:
+                pass
+            except Exception:
+                traceback.print_exc()
+
+        self.data['publications'] = publications
+        self.end_template()
+
+    def parse_template_5(self):
+        """
+        Examples:
+            - http://ceur-ws.org/Vol-157/
+        """
+        self.begin_template()
+        publications = []
+
+        for publication in self.grab.tree.xpath('/html/body//a[@href and '
+                                                'preceding::*[contains(.,"Tabla de Contenidos")]]'):
+            try:
+                name = clean_string(publication.text_content())
+                link = publication.get('href')
+                editors = []
+
+                if publication.getprevious().tag == 'br' and publication.getprevious().getprevious().tag == 'i':
+                    editors_tag_content = publication.getprevious().getprevious().text_content()
+                    editors_tag_content = re.sub(r'\s*[,\s]*and\s+', ',', editors_tag_content, flags=re.I | re.S)
+
+                    for publication_editor_name in editors_tag_content.split(","):
+                        editors.append(clean_string(publication_editor_name.strip()))
+                    # file_name = link.rsplit('.pdf')[0].rsplit('/')[-1]
+                    publication_object = {
+                        'name': name,
+                        'file_name': link,
                         'link': self.task.url + link,
                         'editors': editors
                     }
@@ -289,7 +330,8 @@ def get_page_number(layout):
         if isinstance(x, LTTextBoxHorizontal):
             text_content.append(x.get_text().encode('utf-8'))
     if len(text_content) > 0:
-        if re.match(r'^(\d+)(?:-(\d+))?$', text_content[-1].strip()):  # regex match page number like 1, 1-1
+        # regex match page number like 1, 1-1 TODO should be done more robust
+        if re.match(r'^(\d+)(?:-(\d+))?$', text_content[-1].strip()):
             page_number = text_content[-1].strip()
     return page_number
 
@@ -298,7 +340,7 @@ def get_page_numbers(infile):
     pdf = pdfquery.PDFQuery(infile)
     # get the number of pages
     number_of_pages, start, end = pdf.doc.catalog['Pages'].resolve()['Count'], -1, -1
-    # get the layout of the first page
+    # get the layout of the first page and last page
     layout_start, layout_end = pdf.get_layout(0), pdf.get_layout(number_of_pages-1)
     # get start and end page number by page analysis
     start = get_page_number(layout_start)

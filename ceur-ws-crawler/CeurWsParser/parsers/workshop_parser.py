@@ -56,9 +56,9 @@ class WorkshopSummaryParser(ListParser):
         tr = self.grab.tree.xpath(XPATH_SUMMARY)
         for i in range(0, len(tr), 2):
             element = list()
-            #<a> with the title
+            # <a> with the title
             element.append(tr[i].find(XPATH_SUMMARY_TITLE))
-            #text with the summary information
+            # text with the summary information
             element.append(tr[i + 1].find('.//td[last()]').text_content())
 
             if element[0].get('href') in config.input_urls or len(config.input_urls) == 1:
@@ -223,7 +223,7 @@ class WorkshopSummaryParser(ListParser):
                         r'.*Workshop.*',
                         re.I, default=None).group(3))
         except:
-            #'edition' property is optional
+            # 'edition' property is optional
             pass
 
         self.add_workshop(workshop)
@@ -243,7 +243,7 @@ class WorkshopSummaryParser(ListParser):
                         r'.*Workshop.*',
                         re.I, default=None).group(3))
         except:
-            #'edition' property is optional
+            # 'edition' property is optional
             pass
 
         self.add_workshop(workshop)
@@ -285,7 +285,7 @@ class WorkshopSummaryParser(ListParser):
                     TIMELINE.atDate,
                     Literal(workshop['time'][0].strftime('%Y-%m-%d'), datatype=XSD.date)))
 
-            #For parse_template_5
+            # For parse_template_5
             if 'conf_acronym' in workshop and 'conf_year' in workshop:
                 conference = create_conference_uri(workshop['conf_acronym'], workshop['conf_year'])
                 triples.append((conference, RDF.type, SWRC.Conference))
@@ -371,12 +371,30 @@ class WorkshopPageParser(Parser):
 
         self.end_template()
 
+    def parse_template_1(self):
+        """
+        Examples:
+            - http://ceur-ws.org/Vol-1008/
+            - http://ceur-ws.org/Vol-1081/
+            - http://ceur-ws.org/Vol-1085/
+        """
+        self.begin_template()
+        try:
+            colocated = rex.rex(self.grab.tree.xpath('//span[@class="CEURLOCTIME"]/text()')[0],
+                                r'([a-zA-Z\s*]+)[\s\']*(\d{4}|\d{2})', re.I)
+        except IndexError as ex:
+            raise DataNotFound(ex)
+        self.data['acronym'] = colocated.group(1).strip()
+        self.data['year'] = extract_year(colocated.group(2))
+
+        self.end_template()
+
     def write(self):
         triples = []
         proceedings = create_proceedings_uri(self.data['volume_number'])
         conference = URIRef(config.id['conference'] + urllib.quote(self.data['acronym'] + "-" + self.data['year']))
         triples.append((conference, RDF.type, SWRC.Conference))
-        triples.append((conference, BIBO.shortTitle, Literal(self.data['acronym'], datatype=XSD.string)))
+        triples.append((conference, BIBO.shortTitle, Literal(self.data['acronym'])))
         triples.append((conference, TIMELINE.atDate, Literal(self.data['year'], datatype=XSD.gYear)))
         for workshop in self.graph.objects(proceedings, BIBO.presentedAt):
             triples.append((workshop, SWC.isSubEventOf, conference))
@@ -414,7 +432,7 @@ class WorkshopRelationsParser(ListParser):
         tr = self.grab.tree.xpath(XPATH_SUMMARY)
         for i in range(0, len(tr), 2):
             element = list()
-            #<a> with the title
+            # <a> with the title
             element.append(tr[i].find(XPATH_SUMMARY_TITLE))
 
             if element[0].get('href') in config.input_urls or len(config.input_urls) == 1:
@@ -452,15 +470,15 @@ class WorkshopAcronymParser(ListParser):
         tr = self.grab.tree.xpath(XPATH_SUMMARY)
         for i in range(0, len(tr), 2):
             element = list()
-            #<a> with the title
+            # <a> with the title
             element.append(tr[i].find(XPATH_SUMMARY_TITLE))
-            #text with the summary information
+            # text with the summary information
             element.append(tr[i + 1].find('.//td[last()]').text_content())
 
             url = element[0].get('href')
             workshops = [w for w in self.graph.objects(URIRef(url), BIBO.presentedAt)]
 
-            #This parser doesn't support joint proceedings/workshops
+            # This parser doesn't support joint proceedings/workshops
             if (url in config.input_urls or len(config.input_urls) == 1) and len(workshops) == 1:
                 self.list.append(element)
 
@@ -479,7 +497,7 @@ class WorkshopAcronymParser(ListParser):
     def write(self):
         triples = []
         workshop = create_workshop_uri(self.data['volume_number'])
-        triples.append((workshop, BIBO.shortTitle, Literal(self.data['short_label'], datatype=XSD.string)))
+        triples.append((workshop, BIBO.shortTitle, Literal(self.data['short_label'])))
 
         self.write_triples(triples)
 
@@ -578,7 +596,7 @@ class EditorNameExpandParser(Parser):
 
         for editor in self.graph.objects(self.data['proceedings'], FOAF.maker):
             editor_name = self.graph.value(editor, FOAF.name)
-            if(editor_name.split(' ', 1)[0].find('.') > 0):
+            if editor_name.split(' ', 1)[0].find('.') > 0:
                 self.editors.append((editor, editor_name))
         if len(self.editors) == 0:
             raise DataNotFound('Skipping http://ceur-ws.org/Vol-%s/, because the name are okay'
@@ -601,10 +619,27 @@ class EditorNameExpandParser(Parser):
             if match:
                 self.data['editors'].append((turtle[0], match.group(1)))
 
+    def parse_template_2(self):
+        """
+        Examples:
+            - http://ceur-ws.org/Vol-1/
+        """
+        self.begin_template()
+
+        header = '\n'.join(self.grab.tree.xpath('/html/body//text()[preceding::*[contains(., "Editado por")] '
+                                                'and following::*[contains(.,"Tabla de Contenidos") or @class="CEURTOC"]]'))
+
+        self.data['editors'] = []
+        for turtle in self.editors:
+            regexp = u'.*(' + turtle[1].replace('.', '.*') + ').*'
+            match = re.match(regexp, header, re.I | re.S)
+            if match:
+                self.data['editors'].append((turtle[0], match.group(1)))
+
     def write(self):
         triples = []
 
         for turtle in self.data['editors']:
-            triples.append((turtle[0], FOAF.name, Literal(turtle[1], datatype=XSD.string)))
+            triples.append((turtle[0], FOAF.name, Literal(turtle[1])))
 
         self.write_triples(triples)

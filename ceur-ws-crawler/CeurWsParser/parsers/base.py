@@ -13,7 +13,10 @@ def create_proceedings_uri(volume_number):
 
 
 def create_publication_uri(proceedings_url, file_name):
-    return URIRef('%s#%s' % (proceedings_url, file_name))
+    # for the case file name contain the full url TODO check whether proceedings_url was not removed before
+    file_name = file_name.replace(proceedings_url, '')
+    head, _, _ = file_name.partition('.')  # remove suffix for file .ps, .ps.gz
+    return URIRef('%s#%s' % (proceedings_url, head))
 
 
 def create_conference_uri(conf_acronym, conf_year):
@@ -87,7 +90,7 @@ class Parser:
                     # traceback.print_exc()
                     pass
         if not parsed:
-            #print "[TASK %s][PARSER %s] proper parser method hasn't been found" % (self.task.url, self.__class__.__name__)
+            print "[TASK %s][PARSER %s] proper parser method hasn't been found" % (self.task.url, self.__class__.__name__)
             if self.failonerror:
                 raise NoTemplateError("%s" % self.task.url)
         else:
