@@ -99,14 +99,35 @@ class CEURSpider(Spider):
 def main():
     default_logging()
     bot = CEURSpider()
-    bot.initial_urls = config.input_urls
+    print '\n######## This is a program used to extract data from CEUR Workshop Proceedings. #######\n'
+    print '\nYou can input the workshop number to get the transformed rdf data into current directory rdfdb.ttl file.\n'
+    print '\nFor Example: \n' \
+          '\n\t 1). 1513 \t \t \t \t- you will get the transformed rdf data from http://ceur-ws.org/Vol-1513/\n' \
+          '\n\t 2). 1513-1550 \t \t \t \t- you will get the transformed rdf data between Vol-1513 and Vol-1550\n' \
+          '\n\t 3). 1513 1540 1560   \t \t \t- you will get the transformed rdf data from Vol-1513, Vol-1540 ' \
+          'and Vol-1560\n'
+
+    vol_numbers = raw_input("Please enter volumes you want to transfer: ")
+    input_urls = []
+    if re.match(r'^\d+$', vol_numbers):
+        input_urls.append("http://ceur-ws.org/Vol-" + str(vol_numbers) + "/")
+    elif re.match(r'(\d+)-(\d+)$', vol_numbers):
+        vols = vol_numbers.split('-')
+        input_urls = ["http://ceur-ws.org/Vol-" + str(i) + "/" for i in range(int(vols[0]), int(vols[1])+1)]
+    elif re.match(r'^(\d+\s)+\d(\s)?', vol_numbers):
+        numbers = vol_numbers.split()
+        input_urls = ["http://ceur-ws.org/Vol-" + str(i) + "/" for i in numbers]
+    else:
+        raise ValueError('Your input is not valid.')
+
+    # bot.initial_urls = config.input_urls
+    bot.initial_urls = input_urls
     try:
         bot.run()
     except KeyboardInterrupt:
         pass
 
     print(bot.render_stats())
-
 
 if __name__ == '__main__':
     main()

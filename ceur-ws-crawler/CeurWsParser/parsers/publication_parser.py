@@ -70,7 +70,7 @@ def pdf_parser_2(pdf, number_of_pages):
         # get start and end page number by page analysis
         start = get_page_number_2(layout_start)
         end = get_page_number_2(layout_end)
-        return int(start)-1, end  # as here start with page number 2
+        return int(start)-1, end  # as here start with second pdf page
 
 
 def pdf_parser_1(pdf, number_of_pages):
