@@ -23,27 +23,73 @@ import pdfquery
 from pdfminer.layout import LTTextBoxHorizontal
 
 
-def get_page_number(layout):
+def get_page_number_1(layout):
+    """
+    parse pdf file with page number at the bottom right corner
+    :param layout: pdf miner layout
+    :return: page number if found, otherwise -1
+    """
     text_content, page_number = [], -1
     for x in layout:
         if isinstance(x, LTTextBoxHorizontal):
             text_content.append(x.get_text().encode('utf-8'))
     if len(text_content) > 0:
-        # regex match page number like 1, 1-1 TODO should be done more robust
+        # regex match page number like 1, 1-1
         if re.match(r'^(\d+)(?:-(\d+))?$', text_content[-1].strip()):
             page_number = text_content[-1].strip()
     return page_number
+
+
+def get_page_number_2(layout):
+    """
+    for pdf file with page number at the upper left or upper right corner
+    and page number start from the second page
+    :param layout: pdf miner layout
+    :return: page number if found, otherwise -1
+    """
+    text_content, page_number, pattern = [], -1, r'^(\d+)(?:-(\d+))?$'
+    for x in layout:
+        if isinstance(x, LTTextBoxHorizontal):
+            text_content.append(x.get_text().encode('utf-8'))
+
+    if len(text_content) > 0:
+        # regex match page number like 1, 1-1
+        if re.match(pattern, text_content[0].strip()):
+            page_number = text_content[0].strip()
+        elif re.match(pattern, text_content[1].strip()):
+            page_number = text_content[1].strip()
+        elif re.match(pattern, text_content[2].strip()):  # pdf9 in workshop 1513
+            page_number = text_content[2].strip()
+    return page_number
+
+
+def pdf_parser_2(pdf, number_of_pages):
+    # get the layout of the first page and last page
+    if number_of_pages > 1:
+        layout_start, layout_end = pdf.get_layout(1), pdf.get_layout(number_of_pages-1)
+        # get start and end page number by page analysis
+        start = get_page_number_2(layout_start)
+        end = get_page_number_2(layout_end)
+        return int(start)-1, end  # as here start with page number 2
+
+
+def pdf_parser_1(pdf, number_of_pages):
+    # get the layout of the first page and last page
+    layout_start, layout_end = pdf.get_layout(0), pdf.get_layout(number_of_pages-1)
+    # get start and end page number by page analysis
+    start = get_page_number_1(layout_start)
+    end = get_page_number_1(layout_end)
+    return start, end
 
 
 def get_page_numbers(infile):
     pdf = pdfquery.PDFQuery(infile)
     # get the number of pages
     number_of_pages, start, end = pdf.doc.catalog['Pages'].resolve()['Count'], -1, -1
-    # get the layout of the first page and last page
-    layout_start, layout_end = pdf.get_layout(0), pdf.get_layout(number_of_pages-1)
-    # get start and end page number by page analysis
-    start = get_page_number(layout_start)
-    end = get_page_number(layout_end)
+    # try pdf parser 1
+    start, end = pdf_parser_1(pdf, number_of_pages)
+    if start == -1 and end == -1:
+        start, end = pdf_parser_2(pdf, number_of_pages)
     print start, end
     return number_of_pages, start, end
 
@@ -361,15 +407,10 @@ class PublicationParser(Parser):
                         continue
                 name = clean_string(publication.find('span[@rel="dcterms:relation"]').text_content())
 
-                pages = publication.find('span[@class="CEURPAGES"]').text_content().strip().split('-')
-                print pages
+                # pages = publication.find('span[@class="CEURPAGES"]').text_content().strip().split('-')
+                # print pages TODO we may can also get page number from here for some workshop, it may even faster
 
                 publication_link = publication.find('span[@rel="dcterms:relation"]//a/span[@property="bibo:uri"]').get('content')
-                count, start, end = -1, -1, -1
-                if publication_link.endswith('.pdf'):
-                    count, start, end = -1, -1, -1
-                    # get_page_numbers(self.grab.response.save(urlparse.urlparse(publication_link)))
-                start, end = pages[0], pages[1]
 
                 editors = []
                 for publication_editor in publication.findall('span[@rel="dcterms:creator"]'):
@@ -379,10 +420,7 @@ class PublicationParser(Parser):
                     'name': name,
                     'file_name': publication_link,
                     'link': publication_link,
-                    'editors': editors,
-                    'page': count,
-                    'start': start,
-                    'end': end
+                    'editors': editors
                 }
                 publication_object['is_invited'] = self.is_invited(publication_object)
                 if self.check_for_workshop_paper(publication_object):
