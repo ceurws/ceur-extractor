@@ -19,7 +19,7 @@ mappings = dict(
     url_mappings={
         r'^http://ceur-ws\.org/*$': 'index',
         r'^http://ceur-ws\.org/Vol-\d+/*$': 'workshop',
-        r'^http://ceur-ws\.org/Vol-\d+/.*\.pdf$': 'publication',
+        r'^http://ceur-ws\.org/Vol-\d+/.*\.pdf$': 'publication'
     },
     parser_mappings={
         'index': [

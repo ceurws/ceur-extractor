@@ -23,6 +23,31 @@ import pdfquery
 from pdfminer.layout import LTTextBoxHorizontal
 
 
+def get_page_number(layout):
+    text_content, page_number = [], -1
+    for x in layout:
+        if isinstance(x, LTTextBoxHorizontal):
+            text_content.append(x.get_text().encode('utf-8'))
+    if len(text_content) > 0:
+        # regex match page number like 1, 1-1 TODO should be done more robust
+        if re.match(r'^(\d+)(?:-(\d+))?$', text_content[-1].strip()):
+            page_number = text_content[-1].strip()
+    return page_number
+
+
+def get_page_numbers(infile):
+    pdf = pdfquery.PDFQuery(infile)
+    # get the number of pages
+    number_of_pages, start, end = pdf.doc.catalog['Pages'].resolve()['Count'], -1, -1
+    # get the layout of the first page and last page
+    layout_start, layout_end = pdf.get_layout(0), pdf.get_layout(number_of_pages-1)
+    # get start and end page number by page analysis
+    start = get_page_number(layout_start)
+    end = get_page_number(layout_end)
+    print start, end
+    return number_of_pages, start, end
+
+
 class PublicationParser(Parser):
     def begin_template(self):
         self.data['workshop'] = self.task.url
@@ -93,7 +118,7 @@ class PublicationParser(Parser):
                 for publication_editor in publication.findall('span/span[@rel="dcterms:creator"]'):
                     publication_editor_name = publication_editor.find('span[@property="foaf:name"]').text_content()
                     editors.append(clean_string(publication_editor_name).strip())
-                # file_name = publication_link.rsplit('.pdf')[0].rsplit('/')[-1]
+
                 publication_object = {
                     'name': name,
                     'file_name': publication_link,
@@ -310,6 +335,64 @@ class PublicationParser(Parser):
         self.data['publications'] = publications
         self.end_template()
 
+    def parse_template_6(self):
+        """
+        Examples: VOL 1513
+        """
+        self.begin_template()
+        publications = []
+
+        i = 0
+        for publication in self.grab.tree.xpath('//div[@class="CEURTOC"]/*[@rel="dcterms:hasPart"]/li'):
+            try:
+                if i == 0:
+                    i += 1
+                    name = clean_string(publication.find('a').text_content())
+                    publication_link = publication.find('a').get('href')
+                    publication_object = {
+                        'name': name,
+                        'file_name': publication_link,
+                        'link': publication_link,
+                        'editors': ''
+                    }
+                    publication_object['is_invited'] = self.is_invited(publication_object)
+                    publications.append(publication_object)
+                    if rex.rex(name, r'.*(preface|first\s+pages|author\s+list|foreword).*', re.I, default=None):
+                        continue
+                name = clean_string(publication.find('span[@rel="dcterms:relation"]').text_content())
+
+                pages = publication.find('span[@class="CEURPAGES"]').text_content().strip().split('-')
+                print pages
+
+                publication_link = publication.find('span[@rel="dcterms:relation"]//a/span[@property="bibo:uri"]').get('content')
+                count, start, end = -1, -1, -1
+                if publication_link.endswith('.pdf'):
+                    count, start, end = -1, -1, -1
+                    # get_page_numbers(self.grab.response.save(urlparse.urlparse(publication_link)))
+                start, end = pages[0], pages[1]
+
+                editors = []
+                for publication_editor in publication.findall('span[@rel="dcterms:creator"]'):
+                    editors.append(clean_string(publication_editor.text_content()).strip())
+
+                publication_object = {
+                    'name': name,
+                    'file_name': publication_link,
+                    'link': publication_link,
+                    'editors': editors,
+                    'page': count,
+                    'start': start,
+                    'end': end
+                }
+                publication_object['is_invited'] = self.is_invited(publication_object)
+                if self.check_for_workshop_paper(publication_object):
+                    publications.append(publication_object)
+            except Exception as ex:
+                raise DataNotFound(ex)
+
+        self.data['publications'] = publications
+        self.end_template()
+
     def check_for_completeness(self):
         if len(self.data['publications']) == 0:
             self.data = {}
@@ -322,31 +405,6 @@ class PublicationParser(Parser):
         if not publication['link'].endswith(('.pdf', '.ps.gz', '.ps')):
             return False
         return True
-
-
-def get_page_number(layout):
-    text_content, page_number = [], -1
-    for x in layout:
-        if isinstance(x, LTTextBoxHorizontal):
-            text_content.append(x.get_text().encode('utf-8'))
-    if len(text_content) > 0:
-        # regex match page number like 1, 1-1 TODO should be done more robust
-        if re.match(r'^(\d+)(?:-(\d+))?$', text_content[-1].strip()):
-            page_number = text_content[-1].strip()
-    return page_number
-
-
-def get_page_numbers(infile):
-    pdf = pdfquery.PDFQuery(infile)
-    # get the number of pages
-    number_of_pages, start, end = pdf.doc.catalog['Pages'].resolve()['Count'], -1, -1
-    # get the layout of the first page and last page
-    layout_start, layout_end = pdf.get_layout(0), pdf.get_layout(number_of_pages-1)
-    # get start and end page number by page analysis
-    start = get_page_number(layout_start)
-    end = get_page_number(layout_end)
-    print start, end
-    return number_of_pages, start, end
 
 
 class PublicationNumOfPagesParser(Parser):
