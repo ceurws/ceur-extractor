@@ -12,7 +12,6 @@ from namespaces import BIBO, SWRC, TIMELINE, SWC, SKOS, DBPEDIAOWL
 from parsers import WorkshopSummaryParser, WorkshopPageParser, ProceedingsSummaryParser, \
     PublicationParser, ProceedingsRelationsParser, WorkshopAcronymParser, WorkshopRelationsParser, \
     JointWorkshopsEditorsParser, PublicationNumOfPagesParser, EditorAffiliationParser, EditorNameExpandParser
-import config
 
 
 mappings = dict(
@@ -37,7 +36,7 @@ mappings = dict(
             PublicationParser
         ],
         'publication': [
-            PublicationNumOfPagesParser,
+            # PublicationNumOfPagesParser,
             # PDFParser
         ]
     }
@@ -120,7 +119,6 @@ def main():
     else:
         raise ValueError('Your input is not valid.')
 
-    # bot.initial_urls = config.input_urls
     bot.initial_urls = input_urls
     try:
         bot.run()
