@@ -41,6 +41,8 @@ def get_page_number_1(layout):
         # regex match page number like 1, 1-1
         if re.match(r'^(\d+)(?:-(\d+))?$', text_content[-1].strip()):
             page_number = text_content[-1].strip()
+            if re.match(r'^(\d+)-(\d+)$', page_number):
+                page_number = page_number.split('-')[1]
     return page_number
 
 
@@ -60,10 +62,16 @@ def get_page_number_2(layout):
         # regex match page number like 1, 1-1
         if re.match(pattern, text_content[0].strip()):
             page_number = text_content[0].strip()
+            if re.match(r'^(\d+)-(\d+)$', page_number):
+                pass
         elif re.match(pattern, text_content[1].strip()):
             page_number = text_content[1].strip()
+            if re.match(r'^(\d+)-(\d+)$', page_number):
+                pass
         elif re.match(pattern, text_content[2].strip()):  # pdf9 in workshop 1513
             page_number = text_content[2].strip()
+            if re.match(r'^(\d+)-(\d+)$', page_number):
+                pass
     return page_number
 
 
@@ -369,19 +377,21 @@ class PublicationParser(Parser):
         self.begin_template()
         publications, path = [], ''
 
-        if self.grab.tree.xpath('/html/body//a[@href and preceding::*[contains(.,"Table of Contents")]]'):
+        if len(self.grab.tree.xpath('/html/body//a[@href and preceding::*[contains(.,"Table of Contents")]]')) != 0:
             path = self.grab.tree.xpath('/html/body//a[@href and preceding::*[contains(.,"Table of Contents")]]')
-        elif self.grab.tree.xpath('/html/body//a[@href and preceding::*[contains(.,"Tabla de Contenidos")]]'):
+        elif len(self.grab.tree.xpath('/html/body//a[@href and preceding::*[contains(.,"Tabla de Contenidos")]]')) != 0:
             # Examples: - http://ceur-ws.org/Vol-157/
             path = self.grab.tree.xpath('/html/body//a[@href and preceding::*[contains(.,"Tabla de Contenidos")]]')
+        elif len(self.grab.tree.xpath('/html/body//a[@href and preceding::*[contains(.,"Inhalt")]]')) != 0:
+            path = self.grab.tree.xpath('/html/body//a[@href and preceding::*[contains(.,"Inhalt")]]')
 
         for publication in path:
             try:
                 name = clean_string(publication.text_content())
                 href = publication.get('href')
                 link = href if href.startswith('http://') else self.task.url + href
-                editors = []
 
+                editors = []
                 if publication.getprevious().tag == 'br' and publication.getprevious().getprevious().tag == 'i':
                     editors_tag_content = publication.getprevious().getprevious().text_content()
                     editors_tag_content = re.sub(r'\s*[,\s]*and\s+', ',', editors_tag_content, flags=re.I | re.S)
