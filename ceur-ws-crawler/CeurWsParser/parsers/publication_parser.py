@@ -68,13 +68,14 @@ def get_page_number_2(layout):
 
 
 def pdf_parser_2(pdf, number_of_pages):
+    start, end = -1, -1
     # get the layout of the first page and last page
     if number_of_pages > 1:
         layout_start, layout_end = pdf.get_layout(1), pdf.get_layout(number_of_pages-1)
         # get start and end page number by page analysis
         start = get_page_number_2(layout_start)
         end = get_page_number_2(layout_end)
-        return int(start)-1, end  # as here start with second pdf page
+    return int(start)-1, end  # as here start with second pdf page
 
 
 def pdf_parser_1(pdf, number_of_pages):
@@ -145,10 +146,9 @@ class PublicationParser(Parser):
             triples.append((resource, RDF.type, SWRC.InProceedings))
             triples.append((resource, SWRC.title, Literal(' '.join(publication['name'].split()))))
             triples.append((resource, FOAF.homepage, Literal(publication['link'], datatype=XSD.anyURI)))
-            if publication['num_of_pages']:
-                triples.append((resource, BIBO.numPages, Literal(publication['num_of_pages'], datatype=XSD.integer)))
-                triples.append((resource, BIBO.startPage, Literal(publication['start_page'], datatype=XSD.integer)))
-                triples.append((resource, BIBO.endPage, Literal(publication['end_page'], datatype=XSD.integer)))
+            triples.append((resource, BIBO.numPages, Literal(publication['num_of_pages'], datatype=XSD.integer)))
+            triples.append((resource, BIBO.startPage, Literal(publication['start_page'], datatype=XSD.integer)))
+            triples.append((resource, BIBO.endPage, Literal(publication['end_page'], datatype=XSD.integer)))
 
             if publication['is_invited']:
                 triples.append((resource, RDF.type, SWC.InvitedPaper))
@@ -214,17 +214,16 @@ class PublicationParser(Parser):
         """
 
         self.begin_template()
-        publications, path = [], ''
 
-        if self.grab.tree.xpath('/html/body//*[@class="CEURTOC"]//*[a and descendant-or-self::*[@class="CEURAUTHOR"] '
-                                'and descendant-or-self::*[@class="CEURTITLE"]]'):
+        path, publications = '', []
+        if len(self.grab.tree.xpath('/html/body//*[@class="CEURTOC"]//*[a and descendant-or-self::*'
+                                    '[@class="CEURAUTHOR"] and descendant-or-self::*[@class="CEURTITLE"]]')) != 0:
             path = self.grab.tree.xpath('/html/body//*[@class="CEURTOC"]//*[a and descendant-or-self::*'
                                         '[@class="CEURAUTHOR"] and descendant-or-self::*[@class="CEURTITLE"]]')
-        elif self.grab.tree.xpath('/html/body//*[@class="CEURTOC"]//*[a and descendant-or-self::*[@class="CEURAUTHORS"]'
-                                  ' and descendant-or-self::*[@class="CEURTITLE"]]'):
+        elif len(self.grab.tree.xpath('/html/body//*[@class="CEURTOC"]//*[a and descendant-or-self::*'
+                                      '[@class="CEURAUTHORS"] and descendant-or-self::*[@class="CEURTITLE"]]')) != 0:
             path = self.grab.tree.xpath('/html/body//*[@class="CEURTOC"]//*[a and descendant-or-self::*'
                                         '[@class="CEURAUTHORS"] and descendant-or-self::*[@class="CEURTITLE"]]')
-
         for element in path:
             try:
                 name_el = element.find_class('CEURTITLE')[0]
@@ -235,22 +234,23 @@ class PublicationParser(Parser):
                     name = clean_string(name_el.tail)
                 href = element.find('a').get('href')
                 link = href if href.startswith('http://') else self.task.url + href
-                editors = []
-                if element.find_class('CEURAUTHOR'):
-                    editors_list_el = element.find_class('CEURAUTHOR')[0]
-                if element.find_class('CEURAUTHORS'):
-                    editors_list_el = element.find_class('CEURAUTHORS')[0]
+
                 # get start and end page number from web page
                 num_of_pages, start, end = -1, -1, -1
                 if element.find_class('CEURPAGES'):
                     pages = clean_string(element.find_class('CEURPAGES')[0].text_content().strip()).split('-')
                     start, end, num_of_pages = pages[0], pages[1], int(pages[1]) - int(pages[0]) + 1
-
                 # get start and end page number from pdf file if page number not present at web page
                 if link.endswith('.pdf') and start == -1:
                     num_of_pages, start, end = get_online_page_number(link)
+                editors = []
 
+                if element.find_class('CEURAUTHOR'):
+                    editors_list_el = element.find_class('CEURAUTHOR')[0]
+                if element.find_class('CEURAUTHORS'):
+                    editors_list_el = element.find_class('CEURAUTHORS')[0]
                 editors_list = clean_string(editors_list_el.text_content())
+
                 if not editors_list:
                     # In case of unclosed span element with the author list
                     # Example: http://ceur-ws.org/Vol-1043
@@ -311,7 +311,8 @@ class PublicationParser(Parser):
                 if rex.rex(name, r'.*(preface|first\s+pages|author\s+list|foreword).*', re.I, default=None):
                     # Examples: 180, 186
                     continue
-                link = publication.find('a').get('href')
+                href = publication.find('a').get('href')
+                link = href if href.startswith('http://') else self.task.url + href
                 editors = []
                 editors_tag = None
                 if publication.find('i') is not None:
@@ -336,14 +337,15 @@ class PublicationParser(Parser):
                         editors.append(pen)
 
                 num_of_pages, start, end = -1, -1, -1
+                print link
                 if link.endswith('.pdf') and start == -1:
                     num_of_pages, start, end = get_online_page_number(link)
 
                 # file_name = link.rsplit('.pdf')[0].rsplit('/')[-1]
                 publication_object = {
                     'name': name,
-                    'file_name': link,
-                    'link': self.task.url + link,
+                    'file_name': href,
+                    'link': link,
                     'editors': editors,
                     'num_of_pages': num_of_pages,
                     'start_page': start,
@@ -365,13 +367,19 @@ class PublicationParser(Parser):
             - http://ceur-ws.org/Vol-44/
         """
         self.begin_template()
-        publications = []
+        publications, path = [], ''
 
-        for publication in self.grab.tree.xpath('/html/body//a[@href and '
-                                                'preceding::*[contains(.,"Table of Contents")]]'):
+        if self.grab.tree.xpath('/html/body//a[@href and preceding::*[contains(.,"Table of Contents")]]'):
+            path = self.grab.tree.xpath('/html/body//a[@href and preceding::*[contains(.,"Table of Contents")]]')
+        elif self.grab.tree.xpath('/html/body//a[@href and preceding::*[contains(.,"Tabla de Contenidos")]]'):
+            # Examples: - http://ceur-ws.org/Vol-157/
+            path = self.grab.tree.xpath('/html/body//a[@href and preceding::*[contains(.,"Tabla de Contenidos")]]')
+
+        for publication in path:
             try:
                 name = clean_string(publication.text_content())
-                link = publication.get('href')
+                href = publication.get('href')
+                link = href if href.startswith('http://') else self.task.url + href
                 editors = []
 
                 if publication.getprevious().tag == 'br' and publication.getprevious().getprevious().tag == 'i':
@@ -387,8 +395,8 @@ class PublicationParser(Parser):
 
                     publication_object = {
                         'name': name,
-                        'file_name': link,
-                        'link': self.task.url + link,
+                        'file_name': href,
+                        'link': link,
                         'editors': editors,
                         'num_of_pages': num_of_pages,
                         'start_page': start,
@@ -407,51 +415,6 @@ class PublicationParser(Parser):
 
     def parse_template_5(self):
         """
-        Examples:
-            - http://ceur-ws.org/Vol-157/
-        """
-        self.begin_template()
-        publications = []
-
-        for publication in self.grab.tree.xpath('/html/body//a[@href and '
-                                                'preceding::*[contains(.,"Tabla de Contenidos")]]'):
-            try:
-                name = clean_string(publication.text_content())
-                link = publication.get('href')
-                editors = []
-
-                if publication.getprevious().tag == 'br' and publication.getprevious().getprevious().tag == 'i':
-                    editors_tag_content = publication.getprevious().getprevious().text_content()
-                    editors_tag_content = re.sub(r'\s*[,\s]*and\s+', ',', editors_tag_content, flags=re.I | re.S)
-
-                    for publication_editor_name in editors_tag_content.split(","):
-                        editors.append(clean_string(publication_editor_name.strip()))
-                    num_of_pages, start, end = -1, -1, -1
-                    if link.endswith('.pdf') and start == -1:
-                        num_of_pages, start, end = get_online_page_number(link)
-
-                    publication_object = {
-                        'name': name,
-                        'file_name': link,
-                        'link': self.task.url + link,
-                        'editors': editors,
-                        'num_of_pages': num_of_pages,
-                        'start_page': start,
-                        'end_page': end
-                    }
-                    publication_object['is_invited'] = self.is_invited(publication_object)
-                    if self.check_for_workshop_paper(publication_object):
-                        publications.append(publication_object)
-            except AttributeError:
-                pass
-            except Exception:
-                traceback.print_exc()
-
-        self.data['publications'] = publications
-        self.end_template()
-
-    def parse_template_6(self):
-        """
         Examples: VOL 1513
         """
         self.begin_template()
@@ -463,12 +426,13 @@ class PublicationParser(Parser):
                 if i == 0:
                     i += 1
                     name = clean_string(publication.find('a').text_content())
-                    publication_link = publication.find('a').get('href')
+                    href = publication.find('a').get('href')
+                    link = href if href.startswith('http://') else self.task.url + href
                     num_of_pages, start, end = -1, -1, -1
                     publication_object = {
                         'name': name,
-                        'file_name': publication_link,
-                        'link': publication_link,
+                        'file_name': href,
+                        'link': link,
                         'editors': '',
                         'num_of_pages': num_of_pages,
                         'start_page': start,
@@ -480,14 +444,15 @@ class PublicationParser(Parser):
                         continue
                 name = clean_string(publication.find('span[@rel="dcterms:relation"]').text_content())
 
-                publication_link = publication.find('span[@rel="dcterms:relation"]//a/span[@property="bibo:uri"]').get('content')
+                href = publication.find('span[@rel="dcterms:relation"]//a/span[@property="bibo:uri"]').get('content')
+                link = href if href.startswith('http://') else self.task.url + href
                 num_of_pages, start, end = -1, -1, -1
                 if publication.find('span[@class="CEURPAGES"]'):
                     pages = publication.find('span[@class="CEURPAGES"]').text_content().strip().split('-')
                     start, end, num_of_pages = pages[0], pages[1], int(pages[1]) - int(pages[0]) + 1
                 # get start and end page number from pdf file if page number not present at web page
-                if publication_link.endswith('.pdf') and start == -1:
-                    num_of_pages, start, end = get_online_page_number(publication_link)
+                if link.endswith('.pdf') and start == -1:
+                    num_of_pages, start, end = get_online_page_number(link)
 
                 editors = []
                 for publication_editor in publication.findall('span[@rel="dcterms:creator"]'):
@@ -495,8 +460,8 @@ class PublicationParser(Parser):
 
                 publication_object = {
                     'name': name,
-                    'file_name': publication_link,
-                    'link': publication_link,
+                    'file_name': href,
+                    'link': link,
                     'editors': editors,
                     'num_of_pages': num_of_pages,
                     'start_page': start,
