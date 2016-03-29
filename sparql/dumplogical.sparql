@@ -1,0 +1,10 @@
+PREFIX box: <http://fitlayout.github.io/ontology/render.owl#>
+PREFIX segm: <http://fitlayout.github.io/ontology/segmentation.owl#>
+
+CONSTRUCT { ?a ?p ?t } 
+WHERE { 
+  ?a rdf:type segm:LogicalArea . 
+  ?a ?p ?t .
+  
+  MINUS { ?a segm:belongsTo ?t }
+}

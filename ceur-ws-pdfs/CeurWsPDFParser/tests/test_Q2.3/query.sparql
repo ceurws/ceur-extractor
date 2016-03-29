@@ -1,8 +1,0 @@
-SELECT DISTINCT ?resource_iri ?title ?doi WHERE {
-    VALUES ?paper {
-        <http://ceur-ws.org/Vol-1302/#paper7>
-    } .
-    ?paper bibo:cites ?resource_iri .
-    ?resource_iri bibo:title ?title 
-    OPTIONAL { ?resource_iri bibo:doi ?doi }
-}

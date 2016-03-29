@@ -1,0 +1,40 @@
+PREFIX box: <http://fitlayout.github.io/ontology/render.owl#> 
+PREFIX segm: <http://fitlayout.github.io/ontology/segmentation.owl#> 
+
+DELETE { ?a ?b ?c }
+
+WHERE { 
+       		{?a rdf:type segm:AreaTree}
+  union
+       		{?a rdf:type segm:LogicalArea}
+  union
+  	   	{?a rdf:type segm:Area}
+  union
+  		{?a rdf:type box:Box}
+  union
+  		{?a rdf:type box:Page}
+  union
+  		{?a segm:ititle ?c}
+  union
+  		{?a segm:ishort ?c}
+  union
+  		{?a segm:idateplace ?c}
+  union
+  		{?a segm:iproceedings ?c}
+  union
+  		{?a segm:istartdate ?c}
+  union
+  		{?a segm:ienddate ?c}
+  union
+  		{?a segm:isubmitted ?c}
+  union
+  		{?a segm:icoloc ?c}
+  union
+  		{?a segm:editorname ?c}
+  union
+  		{?a segm:support ?c}
+  union
+  		{?a segm:hasTag ?c}
+
+       ?a ?b ?c .
+}

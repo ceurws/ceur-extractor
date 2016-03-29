@@ -1,0 +1,76 @@
+PREFIX b: <http://fitlayout.github.io/ontology/render.owl#>
+PREFIX segm: <http://fitlayout.github.io/ontology/segmentation.owl#>
+PREFIX dc: <http://purl.org/dc/elements/1.1/#>
+PREFIX swrc: <http://swrc.ontoware.org/ontology/#>
+PREFIX bibo: <http://purl.org/ontology/bibo/#>
+PREFIX swc: <http://data.semanticweb.org/ns/swc/ontology/#>
+PREFIX timeline: <http://purl.org/NET/c4dm/timeline.owl#>
+PREFIX dcterms: <http://dublincore.org/documents/dcmi-terms/#>
+PREFIX xsd: <http://www.w3.org/2001/XMLSchema#>
+PREFIX dbpedia: <http://dbpedia.org/ontology/#>
+
+INSERT 
+{ 
+  ?workshop a swc:WorkshopEvent .
+  ?workshop timeline:beginsAtDatetime ?startdatedt .
+  ?workshop timeline:endsAtDatetime ?enddatedt .
+  ?workshop swc:hasLocation ?vcountry .
+  ?workshop rdfs:seeAlso ?related .
+  ?workshop swc:isSubEventOf ?conference .
+  
+  ?conference a swc:ConferenceEvent .
+  ?conference dc:title ?colocatedTitle .
+  
+  ?workshop swc:hasPart ?WorkshopPart .
+  ?WorkshopPart a bibo:Workshop . 
+  ?WorkshopPart bibo:shortTitle ?workshopShortTitle.
+  ?WorkshopPart dc:title ?workshopTitle .
+  ?WorkshopPart swrc:edition ?editiondt .
+  
+  ?proceedings a swc:Proceedings .
+  ?proceedings bibo:presentedAt ?workshop.
+  ?proceedings dcterms:issued ?publisheddt .
+  ?proceedings swrc:editor ?editor .
+  
+  ?editor rdf:type foaf:Person .
+  ?editor foaf:name ?editorName .
+}
+WHERE {
+  ?workshop segm:ititle ?workshopTitle .
+  ?workshop segm:isubmitted ?publishedText .
+  ?workshop segm:iproceedings ?proc .
+  ?workshop segm:idateplace ?dateplace .
+  ?workshop segm:istartdate ?startdate .
+  ?workshop segm:ienddate ?enddate .
+  OPTIONAL {
+    ?workshop segm:country ?vcountry .
+  }
+  ?workshop segm:editorname ?editorName .
+  
+  OPTIONAL {
+    ?workshop segm:related ?related .
+  }
+  OPTIONAL {
+    ?workshop segm:ishort ?ishort .
+  }
+  
+  OPTIONAL {
+  	?workshop segm:icoloc ?colocatedTitle .
+  }
+    
+  BIND ( STRDT(?startdate, xsd:dateTime) AS ?startdatedt)
+  BIND ( STRDT(?enddate, xsd:dateTime) AS ?enddatedt)
+  BIND ( STRDT(?publishedText, xsd:dateTime) AS ?publisheddt)
+  BIND ( STR(?workshop) AS ?workshopText)
+
+  BIND ( REPLACE(str(?ishort), "^(.*?)\\:(.*?)$", "$1") AS ?workshopShortTitle)
+  BIND ( REPLACE(str(?ishort), "^(.*?)\\:(.*?)$", "$2") AS ?editionText)
+  
+  BIND ( STRDT(?editionText, xsd:integer) AS ?editiondt)
+  
+  BIND ( URI(CONCAT(?workshopText, "#proc")) AS ?proceedings)  
+  BIND ( URI(CONCAT(?workshopText, "#conf")) AS ?conference) 
+  BIND ( URI(CONCAT(?workshopText, "#part-",ENCODE_FOR_URI( COALESCE(?workshopShortTitle, "ws") ))) AS ?WorkshopPart)
+  BIND ( URI(CONCAT(?workshopText, "#", ENCODE_FOR_URI( replace(?editorName," ", "i") ) )) AS ?editor)
+  
+}

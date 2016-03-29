@@ -1,0 +1,62 @@
+PREFIX rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#>
+PREFIX dbpedia-owl: <http://dbpedia.org/ontology/>
+SELECT ?v where {?v rdf:type dbpedia-owl:Country}
+
+PREFIX dbprop: <http://dbpedia.org/property/>
+SELECT DISTINCT ?name
+WHERE 
+{  ?country rdf:type dbpedia-owl:Country;
+      dbprop:commonName ?name .
+   OPTIONAL {?country dbpprop:yearEnd ?yearEnd}
+   FILTER (!bound(?yearEnd))
+}
+
+PREFIX rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#>
+PREFIX dbpedia-owl: <http://dbpedia.org/ontology/>
+PREFIX dbprop: <http://dbpedia.org/property/>
+SELECT ?v where {
+  ?v rdf:type dbpedia-owl:Country .
+  ?v dbprop:continent "Europe"
+}
+
+PREFIX dbprop: <http://dbpedia.org/property/>
+SELECT ?country ?name ?cont
+WHERE 
+{  
+   ?country dbprop:continent ?continent .
+   ?country rdf:type dbpedia-owl:Country;
+      dbprop:commonName ?name .
+   OPTIONAL {?country dbpprop:yearEnd ?yearEnd}
+   FILTER (!bound(?yearEnd))
+}
+
+PREFIX rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#>
+PREFIX yago: <http://dbpedia.org/class/yago/>
+PREFIX dbpedia-owl: <http://dbpedia.org/ontology/>
+SELECT ?place WHERE {
+    ?place rdf:type yago:EuropeanCountries .
+    ?place rdf:type dbpedia-owl:Country
+}
+
+PREFIX rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#>
+PREFIX yago: <http://dbpedia.org/class/yago/>
+PREFIX dbpedia-owl: <http://dbpedia.org/ontology/>
+PREFIX dbprop: <http://dbpedia.org/property/>
+SELECT ?place ?name ?label WHERE {
+    ?place rdf:type yago:EuropeanCountries .
+    ?place rdf:type dbpedia-owl:Country .
+    ?place dbprop:commonName ?name .
+    ?place rdfs:label ?label
+}
+
+PREFIX rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#>
+PREFIX yago: <http://dbpedia.org/class/yago/>
+PREFIX dbpedia-owl: <http://dbpedia.org/ontology/>
+PREFIX dbprop: <http://dbpedia.org/property/>
+SELECT ?place ?name ?label WHERE {
+    ?place rdf:type dbpedia-owl:Country .
+    ?place dbprop:commonName ?name .
+    ?place rdfs:label ?label .
+   OPTIONAL {?place dbpprop:yearEnd ?yearEnd}
+   FILTER (!bound(?yearEnd))
+}

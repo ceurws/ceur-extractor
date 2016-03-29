@@ -1,0 +1,5 @@
+org.fit.layout.eswc.op.FindEswcTagsOperator
+org.fit.layout.eswc.op.ClassTaggerOperator
+org.fit.layout.eswc.op.FindPairsOperator
+org.fit.layout.eswc.op.FindTitlesOperator
+org.fit.layout.eswc.op.FindEditorsOperator
