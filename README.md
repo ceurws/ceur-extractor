@@ -9,7 +9,7 @@ How to Build
 
 The whole package is build using maven. Use `mvn package` for creating the runnable `SemPub2015Extractor.jar`.
 
-The compiled program is also contained in the repository folder [/target/SemPub2015Extractor.jar](https://github.com/liyakun/ToolsEswc/blob/master/target/SemPub2015Extractor.jar) for convenience.
+The compiled program is also contained in the repository folder [/target/SemPub2015Extractor.jar](https://github.com/ceurws/ceur-extractor/blob/master/target/SemPub2015Extractor.jar) for convenience.
 
 
 Running the Extraction Task
@@ -47,15 +47,15 @@ After this, the storage should contain the complete extracted data.
 
 Add license information and get clean rdf dataset
 ---------------------------
-1. You can add the license information of workshops through the update tab of the Blazegraph software, the license file is [license.ttl](https://github.com/liyakun/ToolsEswc/blob/master/license.ttl)
+1. You can add the license information of workshops through the update tab of the Blazegraph software, the license file is [license.ttl](https://github.com/ceurws/ceur-extractor/blob/master/license.ttl)
 
-2. The transformed data contains a lot non relevant information, like html element information. You can use the provided python script [serializer.py](https://github.com/liyakun/ToolsEswc/blob/master/serializer.py) to get the clean dataset.
+2. The transformed data contains a lot non relevant information, like html element information. You can use the provided python script [serializer.py](https://github.com/ceurws/ceur-extractor/blob/master/serializer.py) to get the clean dataset.
 
 SPARQL Queries
 --------------
-The SPARQL queries corresponding to the individual SemPub2015 queries are located in [sparql/ESWC2015-queries.txt](https://github.com/liyakun/ToolsEswc/blob/master/sparql/ESWC2015-queries.txt).
+The SPARQL queries corresponding to the individual SemPub2015 queries are located in [sparql/ESWC2015-queries.txt](https://github.com/ceurws/ceur-extractor/blob/master/sparql/ESWC2015-queries.txt).
 
-The transformation query from the domain-independent logical model to the domain-dependent CEUR workshop ontology is located in [logicalTree2domain.sparql](https://github.com/liyakun/ToolsEswc/blob/master/src/main/resources/sparql/logicalTree2domain.sparql). The transformation itself is included in the `transformToDomain()` call so it's not necessary to execute this query manually.
+The transformation query from the domain-independent logical model to the domain-dependent CEUR workshop ontology is located in [logicalTree2domain.sparql](https://github.com/ceurws/ceur-extractor/blob/master/src/main/resources/sparql/logicalTree2domain.sparql). The transformation itself is included in the `transformToDomain()` call so it's not necessary to execute this query manually.
 
 Publication
 -----------
@@ -65,7 +65,7 @@ MILIČKA Martin and BURGET Radek. Information Extraction from Web Sources based 
 
 LICENSE
 ----------------
-The detail information is contained in [LICENSE](https://github.com/liyakun/ToolsEswc/blob/master/LICENSE).
+The detail information is contained in [LICENSE](https://github.com/ceurws/ceur-extractor/blob/master/LICENSE).
 
 Acknowledgements
 ----------------
