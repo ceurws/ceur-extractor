@@ -1,0 +1,692 @@
+1) DONE
+PREFIX bibo: <http://purl.org/ontology/bibo/#>
+PREFIX swrc: <http://swrc.ontoware.org/ontology/#>
+
+SELECT ?workshop ?editor_name WHERE { 
+  VALUES ?workshop {
+  	  <http://ceur-ws.org/Vol-1085/>
+      <http://ceur-ws.org/Vol-1008/>
+      <http://ceur-ws.org/Vol-540/>
+      <http://ceur-ws.org/Vol-1/> 
+  }
+  ?proc bibo:presentedAt ?workshop .
+  ?proc swrc:editor ?editor .
+  ?editor foaf:name ?editor_name
+} ORDER BY ?workshop
+
+
+2) DONE
+PREFIX bibo: <http://purl.org/ontology/bibo/#>
+PREFIX swrc: <http://swrc.ontoware.org/ontology/#>
+PREFIX swc: <http://data.semanticweb.org/ns/swc/ontology/#>
+PREFIX dc: <http://purl.org/dc/elements/1.1/#> 
+
+SELECT ?workshop ( count(?paper) AS ?num_papers) WHERE {
+  VALUES ?workshop {
+  	<http://ceur-ws.org/Vol-979/>
+  	<http://ceur-ws.org/Vol-1008/>
+  	<http://ceur-ws.org/Vol-994/>
+  	<http://ceur-ws.org/Vol-1/>
+  } 
+  
+  ?proc bibo:presentedAt ?workshop .
+  ?proc swc:hasPart ?paper .
+  ?paper dc:title ?paper_name .
+  OPTIONAL {
+  	?paper bibo:section ?section 
+  }
+  bind ( COALESCE(?section, "default") As ?section)
+  
+  FILTER( !contains( lcase( ?section) ,"introduction") && 
+          !contains( lcase( ?section) ,"polemics") &&
+          !contains( lcase( ?section) ,"proceedings") &&
+          !contains( lcase(?paper_name) ,"proceedings of") &&
+          !strstarts( lcase(?paper_name) ,"preface")
+         )       
+} GROUP BY ?workshop
+
+
+3) DONE
+PREFIX bibo: <http://purl.org/ontology/bibo/#>
+PREFIX swrc: <http://swrc.ontoware.org/ontology/#>
+PREFIX swc: <http://data.semanticweb.org/ns/swc/ontology/#>
+PREFIX dc: <http://purl.org/dc/elements/1.1/#> 
+
+SELECT DISTINCT ?workshop ?author_name WHERE { 
+  VALUES ?workshop {
+    <http://ceur-ws.org/Vol-1085/>
+    <http://ceur-ws.org/Vol-994/>
+  }
+  
+  ?proc bibo:presentedAt ?workshop ; 
+        swc:hasPart ?paper .
+  ?paper dc:title ?paper_name .
+  ?author foaf:made ?paper ;
+          foaf:name ?author_name .
+  
+  OPTIONAL {
+  	?paper bibo:section ?section 
+  }
+  bind ( COALESCE(?section, "default") As ?section)
+  
+  FILTER( !contains( lcase( ?section) ,"introduction") && 
+          !contains( lcase( ?section) ,"polemics") &&
+          !contains( lcase( ?section) ,"proceedings") &&
+          !contains( lcase(?paper_name) ,"proceedings of") &&
+          !strstarts( lcase(?paper_name) ,"preface")
+        )    
+} ORDER BY ?paper
+
+
+
+4) DONE
+PREFIX bibo: <http://purl.org/ontology/bibo/#>
+PREFIX swrc: <http://swrc.ontoware.org/ontology/#>
+PREFIX swc: <http://data.semanticweb.org/ns/swc/ontology/#>
+PREFIX dc: <http://purl.org/dc/elements/1.1/#>
+
+SELECT ?workshop (AVG(?num_pages) AS ?avg) WHERE { 
+  VALUES ?workshop {
+  	<http://ceur-ws.org/Vol-994/>
+    <http://ceur-ws.org/Vol-1085/>
+  }
+  
+  ?proc bibo:presentedAt ?workshop .
+  ?proc swc:hasPart ?paper .
+  ?paper bibo:numPages ?num_pages ;
+    dc:title ?paper_name .
+  
+  OPTIONAL {
+  	?paper bibo:section ?section 
+  }
+  bind ( COALESCE(?section, "default") As ?section)
+  
+  FILTER( !contains( lcase( ?section) ,"introduction") && 
+          !contains( lcase( ?section) ,"polemics") &&
+          !contains( lcase( ?section) ,"proceedings") &&
+          !contains( lcase(?paper_name) ,"proceedings of") &&
+          !strstarts( lcase(?paper_name) ,"preface")
+        )    
+}
+GROUP BY ?workshop
+
+
+5) DONE
+PREFIX bibo: <http://purl.org/ontology/bibo/#>
+PREFIX dcterms: <http://dublincore.org/documents/dcmi-terms/#>
+PREFIX timeline:<http://purl.org/NET/c4dm/timeline.owl#>
+
+SELECT ?workshop ?presentedEarlier WHERE {
+  VALUES ?workshop {
+    <http://ceur-ws.org/Vol-1/>
+    <http://ceur-ws.org/Vol-1085/>
+  }
+   
+  ?proc bibo:presentedAt ?workshop .
+  ?proc dcterms:issued ?issued .
+  ?workshop timeline:beginsAtDatetime ?date 
+   
+  BIND( bound(?date) && ?date >= ?issued AS ?presentedEarlier ) 
+}
+
+
+6) DONE
+PREFIX swc: <http://data.semanticweb.org/ns/swc/ontology/#>
+PREFIX bibo: <http://purl.org/ontology/bibo/#>
+PREFIX dc: <http://purl.org/dc/elements/1.1/#>
+
+SELECT  ?search ?workshop WHERE { 
+  VALUES ?search {
+  	"Linked Data on the Web"
+    "Workshop on Modular Ontologies"
+  }
+  
+  ?workshop a swc:WorkshopEvent.
+  ?workshop swc:hasPart ?node .
+  ?node dc:title ?title .
+  
+  FILTER( strstarts(?title, ?search) ) 
+} 
+GROUP BY ?workshop ?search ORDER BY ?search
+
+
+7) DONE
+PREFIX swc: <http://data.semanticweb.org/ns/swc/ontology/#>
+PREFIX swrc: <http://swrc.ontoware.org/ontology/#>
+PREFIX dc: <http://purl.org/dc/elements/1.1/#>
+PREFIX bibo: <http://purl.org/ontology/bibo/#>
+
+SELECT ?search ?editor_name  WHERE {
+  {
+      VALUES ?search {
+      	"Linked Data on the Web"
+        "Semantic Publishing"
+        "Uncertainty Reasoning for the Semantic Web"
+      }
+  }
+  {
+    SELECT ?search ?workshop ?editor WHERE {     
+      ?workshop a swc:WorkshopEvent.
+      ?workshop swc:hasPart ?node .
+      ?node dc:title ?title .
+      FILTER ( strstarts(?title, ?search) )       
+      [] a swc:Proceedings;
+	          bibo:presentedAt ?workshop;
+            swrc:editor ?editor .
+    } 
+ }
+ {
+    SELECT ?search (COUNT(?workshop) AS ?count) WHERE {
+      ?workshop a swc:WorkshopEvent.
+      ?workshop swc:hasPart ?node .
+      ?node dc:title ?title .
+      FILTER( strstarts(?title, ?search ) )
+    }
+    GROUP BY ?search
+ }
+ ?editor foaf:name ?editor_name .
+}
+GROUP BY ?search ?editor_name
+HAVING (COUNT(?search) = MAX(?count) )
+ORDER BY ?search
+
+
+8) DONE
+PREFIX swc: <http://data.semanticweb.org/ns/swc/ontology/#>
+PREFIX swrc: <http://swrc.ontoware.org/ontology/#>
+PREFIX timeline:<http://purl.org/NET/c4dm/timeline.owl#>
+PREFIX bibo:<http://purl.org/ontology/bibo/#>
+PREFIX dc: <http://purl.org/dc/elements/1.1/#>
+
+SELECT ?conf_name (YEAR(?conf_date) AS ?conf_year) ?workshop WHERE {
+  
+  VALUES (?conf_acrn ?year) {
+      	("LPNMR" 2013)
+        ("WWW" 2012)
+  }
+  
+  ?proc a swc:Proceedings ;
+        bibo:presentedAt ?workshop .
+  ?workshop a swc:WorkshopEvent;
+        swc:isSubEventOf ?conf ;
+        timeline:beginsAtDatetime ?conf_date .
+  ?conf a swc:ConferenceEvent;
+        dc:title ?conf_name .
+          
+  FILTER( contains(?conf_name, ?conf_acrn) && YEAR(?conf_date) = ?year )
+}
+
+
+9) DONE
+PREFIX swc: <http://data.semanticweb.org/ns/swc/ontology/#>
+PREFIX swrc: <http://swrc.ontoware.org/ontology/#>
+PREFIX bibo:<http://purl.org/ontology/bibo/#>
+PREFIX dc: <http://purl.org/dc/elements/1.1/#>
+
+SELECT DISTINCT ?workshop ?paper WHERE {  
+    VALUES ?workshop {
+      <http://ceur-ws.org/Vol-1081/>
+	  <http://ceur-ws.org/Vol-1008/>
+	  <http://ceur-ws.org/Vol-721/>
+	  <http://ceur-ws.org/Vol-1/>
+    } 
+  
+  	?workshop a swc:WorkshopEvent .
+    ?proc bibo:presentedAt ?workshop .
+    ?proc swrc:editor ?editor .
+    ?editor a foaf:Person ;
+            foaf:name ?editor_name .
+    ?proc swc:hasPart ?paper .
+  
+    ?paper dc:title ?ptitle .
+  
+    OPTIONAL {
+      ?paper bibo:section ?section 
+    }
+    bind ( COALESCE(?section, "default") As ?section)
+
+    FILTER( !contains( lcase( ?section) ,"introduction") && 
+            !contains( lcase( ?section) ,"polemics") &&
+            !contains( lcase( ?section) ,"proceedings") &&
+          	!contains( lcase(?ptitle) ,"proceedings of") &&
+           	!contains( lcase(?ptitle) ,"preface")
+          )   
+    
+    ?author a foaf:Person ;
+            foaf:made ?paper ;
+            foaf:name ?author_name .
+  
+  FILTER( CONTAINS(?abbrev, ?author_name) || CONTAINS( ?abbrev2, ?author_name)  )
+  
+  OPTIONAL {
+    BIND(REPLACE(str(?editor_name), "^(.?)(.*?) (.*?)$", "$1. $3") AS ?abbrev)
+    BIND(REPLACE(str(?editor_name), "^(.?)(.*?) (.?)(.*?) (.*?)$", "$1.$3. $5") AS ?abbrev2)
+  }
+} GROUP BY ?workshop ?paper
+
+
+10) DONE
+PREFIX swc: <http://data.semanticweb.org/ns/swc/ontology/#>
+PREFIX bibo:<http://purl.org/ontology/bibo/#>
+
+SELECT ?workshop ?author_name {
+  VALUES ?workshop {
+    <http://ceur-ws.org/Vol-1085/>
+    <http://ceur-ws.org/Vol-1081/>
+    <http://ceur-ws.org/Vol-1008/>
+    <http://ceur-ws.org/Vol-875/>
+    <http://ceur-ws.org/Vol-1/> 
+  }
+  
+  ?workshop a swc:WorkshopEvent.
+  ?proc bibo:presentedAt ?workshop .
+  ?proc swc:hasPart ?paper .
+  
+  ?author foaf:made ?paper ;
+          foaf:name ?author_name . 	
+  
+  OPTIONAL {
+  	?paper bibo:section ?section 
+  }
+  bind ( COALESCE(?section, "default") As ?section)
+  
+  FILTER (
+      contains( lcase( str(?section) ) , "keynote") || 
+      contains( lcase( str(?section) ) , "invite") ||
+      contains( lcase( str(?paper) ) , "#keynote") || 
+      contains( lcase( str(?paper) ) , "#invite")
+  )
+}
+
+
+11) DONE
+PREFIX swc: <http://data.semanticweb.org/ns/swc/ontology/#>
+PREFIX swrc: <http://swrc.ontoware.org/ontology/#>
+PREFIX dc: <http://purl.org/dc/elements/1.1/#>
+PREFIX bibo:<http://purl.org/ontology/bibo/#>
+PREFIX timeline:<http://purl.org/NET/c4dm/timeline.owl#>
+
+SELECT ?prefix (MAX(?maxEdition) AS ?newEdition) WHERE {
+{
+  SELECT ?prefix (MAX(?edition) AS ?maxEdition)  {
+    VALUES ?prefix {
+      "Linked Data on the Web"
+	    "Workshop on Modular Ontologies"
+    }
+    ?workshop a swc:WorkshopEvent .
+    ?workshop swc:hasPart ?node .
+    ?node dc:title ?workshop_name .
+    
+    OPTIONAL { ?node swrc:edition ?e . }
+    BIND (IF(bound(?e), ?e, 1) AS ?edition)
+    FILTER(STRSTARTS(?workshop_name, ?prefix))
+  } GROUP BY ?prefix
+}
+UNION {
+  SELECT ?prefix (COUNT(?edition) AS ?maxEdition)  {
+    VALUES ?prefix {
+      "Linked Data on the Web"
+	    "Workshop on Modular Ontologies"
+    }
+    ?workshop a swc:WorkshopEvent .
+    ?workshop swc:hasPart ?node .
+    ?node dc:title ?workshop_name .
+    
+    OPTIONAL { ?node swrc:edition ?e . }
+    BIND (IF(bound(?e), ?e, 1) AS ?edition)
+    FILTER(STRSTARTS(?workshop_name, ?prefix))
+  } GROUP BY ?prefix
+}
+
+} GROUP BY ?prefix
+
+
+
+12) DONE
+PREFIX swc: <http://data.semanticweb.org/ns/swc/ontology/#>
+PREFIX swrc: <http://swrc.ontoware.org/ontology/#>
+PREFIX timeline:<http://purl.org/NET/c4dm/timeline.owl#>
+PREFIX bibo:<http://purl.org/ontology/bibo/#>
+PREFIX dc: <http://purl.org/dc/elements/1.1/#>
+
+SELECT ?workshop ?workshop_name ?related {
+{
+    SELECT ?workshop (MIN(?date) AS ?min_date) {
+      VALUES ?workshop {
+        <http://ceur-ws.org/Vol-1074/>
+        <http://ceur-ws.org/Vol-1049/>
+      }
+      ?workshop rdfs:seeAlso ?related.
+      ?related timeline:beginsAtDatetime ?date .
+    } GROUP BY ?workshop
+}
+  ?workshop rdfs:seeAlso ?related .
+  ?related swc:hasPart ?node.
+  ?node dc:title ?workshop_name .
+  ?related timeline:beginsAtDatetime ?date . 
+  
+  FILTER(?date = ?min_date)
+}
+
+
+13) DONE
+PREFIX swc: <http://data.semanticweb.org/ns/swc/ontology/#>
+PREFIX swrc: <http://swrc.ontoware.org/ontology/#>
+PREFIX timeline:<http://purl.org/NET/c4dm/timeline.owl#>
+PREFIX bibo:<http://purl.org/ontology/bibo/#>
+PREFIX dc: <http://purl.org/dc/elements/1.1/#>
+
+SELECT DISTINCT ?acrn ?year ?workshop  {
+  VALUES (?acrn ?year) {
+    ("ISWC" "2012")
+  }
+  
+  ?conf a swc:ConferenceEvent;
+    dc:title ?conf_name .
+ 
+  ?workshop swc:isSubEventOf ?conf .
+  ?workshop timeline:beginsAtDatetime ?date .
+  
+  FILTER ( ?conf_name = ?acrn && STR(YEAR(?date)) = ?year )
+  FILTER EXISTS { ?workshop rdfs:seeAlso [] . }
+  FILTER NOT EXISTS { [] rdfs:seeAlso ?workshop . }  
+}
+
+
+14) DONE
+PREFIX dc: <http://purl.org/dc/elements/1.1/#>
+PREFIX swrc: <http://swrc.ontoware.org/ontology/#>
+PREFIX bibo: <http://purl.org/ontology/bibo/#>
+PREFIX swc: <http://data.semanticweb.org/ns/swc/ontology/#>
+PREFIX timeline: <http://purl.org/NET/c4dm/timeline.owl#>
+PREFIX dcterms: <http://dublincore.org/documents/dcmi-terms/#>
+
+SELECT DISTINCT ?acrn ?workshop ?paper WHERE {
+  
+  VALUES (?acrn ?workshop) {
+      ("BeRSys" <http://ceur-ws.org/Vol-981/>)
+  }
+  
+  ?workshop a swc:WorkshopEvent.
+  ?workshop swc:hasPart ?node .
+  ?node bibo:shortTitle ?w_title .
+  
+  ?proc bibo:presentedAt ?workshop .
+  ?proc swc:hasPart ?paper .
+  
+  ?paper bibo:section ?section .
+  filter( contains( ?section, ?acrn )  )  
+} 
+
+
+15) DONE
+PREFIX dc: <http://purl.org/dc/elements/1.1/#>
+PREFIX swrc: <http://swrc.ontoware.org/ontology/#>
+PREFIX bibo: <http://purl.org/ontology/bibo/#>
+PREFIX swc: <http://data.semanticweb.org/ns/swc/ontology/#>
+PREFIX timeline: <http://purl.org/NET/c4dm/timeline.owl#>
+PREFIX dcterms: <http://dublincore.org/documents/dcmi-terms/#>
+
+SELECT DISTINCT ?acrn ?workshop ?editor_name WHERE {
+  
+  VALUES (?acrn ?workshop) {
+      ("BeRSys" <http://ceur-ws.org/Vol-981/>)
+  }
+  
+  ?workshop a swc:WorkshopEvent.
+  ?workshop swc:hasPart ?node .
+  ?node bibo:shortTitle ?w_title .
+  
+  ?proc bibo:presentedAt ?workshop.
+  ?proc swrc:editor ?editor .
+  ?editor foaf:name ?editor_name .
+  
+  ?editor bibo:section ?section .
+  filter( contains( ?section, ?acrn )  )
+} 
+  
+  
+16) DONE
+PREFIX dc: <http://purl.org/dc/elements/1.1/#>
+PREFIX swrc: <http://swrc.ontoware.org/ontology/#>
+PREFIX bibo: <http://purl.org/ontology/bibo/#>
+PREFIX swc: <http://data.semanticweb.org/ns/swc/ontology/#>
+PREFIX timeline: <http://purl.org/NET/c4dm/timeline.owl#>
+PREFIX dcterms: <http://dublincore.org/documents/dcmi-terms/#>
+  
+SELECT ?acrn (str(YEAR(?confr_date)) as ?date) ?workshopr  {
+      
+    ?workshop a swc:WorkshopEvent;
+      swc:isSubEventOf ?conf ;
+      timeline:beginsAtDatetime ?conf_date .
+    ?conf a swc:ConferenceEvent;
+      dc:title ?conf_name . 
+    ?proc a swc:Proceedings ;
+      bibo:presentedAt ?workshop .
+	  ?workshopr rdfs:seeAlso ?workshop ;
+      swc:isSubEventOf ?confr ;
+  	timeline:beginsAtDatetime ?confr_date .
+    ?confr a swc:ConferenceEvent;
+      dc:title ?confr_name . 
+	  ?procr a swc:Proceedings;   
+  	bibo:presentedAt ?workshopr .
+  
+  {
+    SELECT ?proc ( COUNT(?pub) AS ?proc_numPubs) {
+      ?proc swc:hasPart ?pub.
+      ?pub a swc:Paper
+    } GROUP BY ?proc
+  }
+  {
+    SELECT ?procr ( COUNT(?pub) AS ?procr_numPubs) {
+      ?procr swc:hasPart ?pub.
+      ?pub a swc:Paper
+    } GROUP BY ?procr
+  }
+  
+  {  
+    SELECT ?acrn ?year ( MAX(?procr_numPubs-?proc_numPubs) AS ?maxDiff ) {
+      VALUES (?acrn ?year) {
+        ("WWW" "2012")
+      }
+      ?workshop a swc:WorkshopEvent;
+        swc:isSubEventOf ?conf ;
+        timeline:beginsAtDatetime ?conf_date .
+      ?conf a swc:ConferenceEvent;
+        dc:title ?conf_name . 
+      ?proc a swc:Proceedings ;
+        bibo:presentedAt ?workshop .
+      
+  	  ?workshopr rdfs:seeAlso ?workshop ;
+        swc:isSubEventOf ?confr ;
+    	timeline:beginsAtDatetime ?confr_date .
+      ?confr a swc:ConferenceEvent;
+        dc:title ?confr_name . 
+  	  ?procr a swc:Proceedings;   
+    	bibo:presentedAt ?workshopr .
+      {
+        SELECT ?proc ( COUNT(?pub) AS ?proc_numPubs) {
+          ?proc swc:hasPart ?pub.
+          ?pub a swc:Paper
+        } GROUP BY ?proc
+      }
+      {
+        SELECT ?procr ( COUNT(?pub) AS ?procr_numPubs) {
+          ?procr swc:hasPart ?pub.
+          ?pub a swc:Paper
+        } GROUP BY ?procr
+      }
+      FILTER( ?conf_name=?acrn && ?confr_name=?acrn && ?confr_date>?conf_date && str(YEAR(?conf_date) )=?year )  
+    } GROUP BY ?acrn ?year
+}
+FILTER( ?conf_name=?acrn && ?confr_name=?acrn && str(YEAR(?conf_date))=?year && 
+          ?conf_date<?confr_date && (?procr_numPubs - ?proc_numPubs)=?maxDiff )
+}   
+  
+  
+  
+17)  DONE - invalid training output - index does not cover conf
+PREFIX dc: <http://purl.org/dc/elements/1.1/#>
+PREFIX swrc: <http://swrc.ontoware.org/ontology/#>
+PREFIX bibo: <http://purl.org/ontology/bibo/#>
+PREFIX swc: <http://data.semanticweb.org/ns/swc/ontology/#>
+PREFIX timeline: <http://purl.org/NET/c4dm/timeline.owl#>
+PREFIX dcterms: <http://dublincore.org/documents/dcmi-terms/#>
+
+SELECT ?acrn ?year ?workshop_acrn  {
+   VALUES (?acrn ?year) {
+    ("ISWC" "2012")
+    ("FOIS" "2012")
+    ("ESWC" "2012")
+  }
+  ?conf a swc:ConferenceEvent;
+    dc:title ?conf_acrn .
+  ?workshop a swc:WorkshopEvent;
+    swc:isSubEventOf ?conf;
+    timeline:beginsAtDatetime ?conf_date ;
+    swc:hasPart ?node .
+  ?node bibo:shortTitle ?workshop_acrn
+  {
+    SELECT ?workshop (MAX(?workshop_prev_date) AS ?prev_date) {
+      ?workshop rdfs:seeAlso ?workshop_prev .
+      ?workshop_prev a swc:WorkshopEvent;
+        timeline:beginsAtDatetime ?workshop_prev_date.
+    }
+    GROUP BY ?workshop
+  } 
+  
+  ?workshop rdfs:seeAlso ?workshop_prev .
+  
+  ?workshop_prev timeline:beginsAtDatetime ?conf_prev_date ; 
+    swc:isSubEventOf ?conf_prev .
+  
+  ?conf_prev a swc:ConferenceEvent;
+    dc:title ?conf_prev_acrn .
+  
+  ?workshop_prev swc:hasPart ?node2 .
+  	?node2 bibo:shortTitle ?workshop_acrn_prev .	
+  
+  FILTER ( ?conf_acrn = ?acrn  && STR(YEAR(?conf_date))=?year && ?conf_prev_acrn!=?acrn &&
+          ?workshop_acrn = ?workshop_acrn_prev && ?prev_date=?conf_prev_date )    
+}
+
+  
+18) DONE - training dataset contains invalid output for Scalable...
+(solution can be based on abbrev comparison - however they can be similar within different workshops)
+PREFIX dc: <http://purl.org/dc/elements/1.1/#>
+PREFIX swrc: <http://swrc.ontoware.org/ontology/#>
+PREFIX bibo: <http://purl.org/ontology/bibo/#>
+PREFIX swc: <http://data.semanticweb.org/ns/swc/ontology/#>
+PREFIX timeline: <http://purl.org/NET/c4dm/timeline.owl#>
+PREFIX dcterms: <http://dublincore.org/documents/dcmi-terms/#>  
+
+SELECT ?prefix (YEAR(?prev_date) AS ?prev_year) (YEAR(?date) as ?act_date) {
+  {
+    SELECT ?prefix ?x (MAX(?y_date) as ?prev_date) {
+      VALUES ?prefix {
+        "Linked Data on the Web"
+		    "Workshop on Modular Ontologies"
+		    "Scalable and High-Performance Semantic Web"
+      }
+      ?x a swc:WorkshopEvent ;
+      	timeline:beginsAtDatetime ?x_date ;
+      	swc:hasPart ?node .
+      ?node dc:title ?x_name .
+      
+      ?x rdfs:seeAlso ?y .
+      
+      ?y a swc:WorkshopEvent ;
+      	timeline:beginsAtDatetime ?y_date ;
+      	swc:hasPart ?node2 .
+      ?node2 dc:title ?y_name ;
+      
+      FILTER(
+        CONTAINS(?x_name, ?prefix)
+        && CONTAINS(?y_name, ?prefix)
+        && ?x_date > ?y_date 
+        
+      )
+    } GROUP BY ?prefix ?x
+  }
+  ?x timeline:beginsAtDatetime ?date .
+  FILTER(ABS(MONTH(?date) - MONTH(?prev_date))>2)
+} 
+
+
+
+19) 
+PREFIX bibo: <http://purl.org/ontology/bibo/#>
+PREFIX swrc: <http://swrc.ontoware.org/ontology/#>
+
+SELECT ?workshop ?editor_name ?affil ?country WHERE { 
+  VALUES ?workshop {
+  	<http://ceur-ws.org/Vol-1085/>
+  	<http://ceur-ws.org/Vol-1008/>
+  	<http://ceur-ws.org/Vol-540/>
+  	<http://ceur-ws.org/Vol-1/>
+  }
+  ?proc bibo:presentedAt ?workshop .
+  ?proc swrc:editor ?editor .
+  ?editor foaf:name ?editor_name .
+  ?editor swrc:affiliation ?affil .
+  OPTIONAL {
+  	?editor bibo:place ?country .
+  }
+} ORDER BY ?workshop
+
+
+20) DONE - wrong training output - Pavel Shvaiko - publicated in every edition
+PREFIX swc: <http://data.semanticweb.org/ns/swc/ontology/#>
+PREFIX swrc: <http://swrc.ontoware.org/ontology/#>
+PREFIX dc: <http://purl.org/dc/elements/1.1/#>
+PREFIX bibo: <http://purl.org/ontology/bibo/#>
+
+SELECT ?search ?author_name WHERE {
+  {
+      VALUES ?search {
+		    "Mathematical User Interface"
+            "Ontology Matching"
+      }
+  }
+ {
+    SELECT ?search ?workshop ?author WHERE {     
+      ?workshop a swc:WorkshopEvent.
+      ?workshop swc:hasPart ?node .
+      ?node dc:title ?title .
+      FILTER ( strStarts(?title, ?search) )       
+      [] a swc:Proceedings;
+	          bibo:presentedAt ?workshop;
+            swc:hasPart ?paper .
+      ?author foaf:made ?paper .
+      
+      ?paper  dc:title ?paper_name .
+      
+      OPTIONAL {
+      	?paper bibo:section ?section 
+      }
+      bind ( COALESCE(?section, "default") As ?section)
+      
+      FILTER( !contains( lcase( ?section) ,"introduction") && 
+              !contains( lcase( ?section) ,"polemics") &&
+              !contains( lcase( ?section) ,"proceedings") &&
+              !contains( lcase( ?section) ,"work in progress") &&
+              !contains( lcase(?paper_name) ,"proceedings of") &&
+              #!contains( lcase(?paper_name) ,"results") &&
+              !strstarts( lcase(?paper_name) ,"preface")
+            )    
+    } GROUP BY ?search ?workshop ?author
+ }
+ {
+    SELECT ?search (COUNT(?workshop) AS ?count) WHERE {
+      ?workshop a swc:WorkshopEvent.
+      ?workshop swc:hasPart ?node .
+      ?node dc:title ?title .
+      FILTER( strStarts(?title, ?search ) )
+    }
+    GROUP BY ?search
+ }
+ ?author foaf:name ?author_name .
+} 
+GROUP BY ?search ?author_name
+HAVING (COUNT(?search) = MAX(?count) )
+ORDER BY ?search
